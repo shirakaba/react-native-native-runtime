@@ -1,19 +1,44 @@
+#import <React/RCTBridge+Private.h>
+#import <React/RCTConvert.h>
 #import "ObjcRuntime.h"
-#import "react-native-objc-runtime.h"
+#import "../cpp/react-native-objc-runtime.h"
 
 @implementation ObjcRuntime
 
-RCT_EXPORT_MODULE()
+@synthesize bridge=_bridge;
 
-// Example method for C++
-// See the implementation of the example module in the `cpp` folder
-RCT_EXPORT_METHOD(multiply:(nonnull NSNumber*)a withB:(nonnull NSNumber*)b
-                  withResolver:(RCTPromiseResolveBlock)resolve
-                  withReject:(RCTPromiseRejectBlock)reject)
-{
-    NSNumber *result = @(example::multiply([a floatValue], [b floatValue]));
-
-    resolve(result);
++ (BOOL)requiresMainQueueSetup {
+  return YES;
 }
+
+- (void)setBridge:(RCTBridge *)bridge {
+  _bridge = bridge;
+  _setBridgeOnMainQueue = RCTIsMainQueue();
+
+  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+  if (!cxxBridge.runtime) {
+    return;
+  }
+  
+    ObjcRuntime::install(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+}
+
+- (void)invalidate {
+  if(!self.bridge){
+    return;
+  }
+  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+  if (!cxxBridge.runtime) {
+    return;
+  }
+    ObjcRuntime::uninstall(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+}
+
+- (void)dealloc
+{
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+RCT_EXPORT_MODULE()
 
 @end

@@ -1,8 +1,21 @@
-#ifndef EXAMPLE_H
-#define EXAMPLE_H
+#import "react-native-objc-runtime.h"
+#import "JSIUtils.h"
 
-namespace example {
-  int multiply(float a, float b);
+#include <iostream>
+#include <functional>
+#include <sstream>
+
+using namespace facebook;
+
+namespace ObjcRuntimeJsi {
+void install(jsi::Runtime& jsiRuntime) {
+  std::cout << "Initialising Obj-C JSI" << "\n";
+
+  // TODO: set host object here
 }
 
-#endif /* EXAMPLE_H */
+void uninstall(jsi::Runtime& jsiRuntime) {
+  // We seemingly can't remove the property altogether, but let's at least try to set it to undefined.
+  jsiRuntime.global().setProperty(jsiRuntime, "objc", jsi::Value::undefined());
+}
+} // namespace ObjcRuntime
