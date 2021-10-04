@@ -2,10 +2,12 @@
 //  JSIUtils.mm
 //  VisionCamera
 //
+//  Forked and Adjusted by Jamie Birch on 29.09.21.
 //  Forked and Adjusted by Marc Rousavy on 02.05.21.
-//  Copyright © 2021 mrousavy & Facebook. All rights reserved.
+//  Copyright © 2021 Jamie Birch, mrousavy, and Facebook. All rights reserved.
 //
-//  Forked and adjusted from: https://github.com/facebook/react-native/blob/900210cacc4abca0079e3903781bc223c80c8ac7/ReactCommon/react/nativemodule/core/platform/ios/RCTTurboModule.mm
+// Forked and adjusted from: https://github.com/mrousavy/react-native-vision-camera/blob/5dc8ded62a4cb25971006287b7c634ca0981c5a2/ios/React%20Utils/JSIUtils.mm
+//  ... which itself was forked and adjusted from: https://github.com/facebook/react-native/blob/900210cacc4abca0079e3903781bc223c80c8ac7/ReactCommon/react/nativemodule/core/platform/ios/RCTTurboModule.mm
 //  Original Copyright Notice:
 //
 //  Copyright (c) Facebook, Inc. and its affiliates.
@@ -20,8 +22,6 @@
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTBridge.h>
 #import <ReactCommon/TurboModuleUtils.h>
-#import "../Frame Processor/Frame.h"
-#import "../Frame Processor/FrameHostObject.h"
 
 using namespace facebook;
 using namespace facebook::react;
@@ -76,9 +76,6 @@ jsi::Value convertObjCObjectToJSIValue(jsi::Runtime &runtime, id value)
     return convertNSArrayToJSIArray(runtime, (NSArray *)value);
   } else if (value == (id)kCFNull) {
     return jsi::Value::null();
-  } else if ([value isKindOfClass:[Frame class]]) {
-    auto frameHostObject = std::make_shared<FrameHostObject>((Frame*)value);
-    return jsi::Object::createFromHostObject(runtime, frameHostObject);
   }
   return jsi::Value::undefined();
 }
@@ -156,13 +153,6 @@ id convertJSIValueToObjCObject(jsi::Runtime &runtime, const jsi::Value &value, s
     }
     if (o.isFunction(runtime)) {
       return convertJSIFunctionToCallback(runtime, std::move(o.getFunction(runtime)), jsInvoker);
-    }
-    if (o.isHostObject(runtime)) {
-      auto hostObject = o.asHostObject(runtime);
-      auto frame = dynamic_cast<FrameHostObject*>(hostObject.get());
-      if (frame != nullptr) {
-        return frame->frame;
-      }
     }
     return convertJSIObjectToNSDictionary(runtime, o, jsInvoker);
   }
