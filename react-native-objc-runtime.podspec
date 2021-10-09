@@ -15,5 +15,19 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm}", "cpp/**/*.{h,cpp,mm}"
 
+  # @see https://github.com/mrousavy/react-native-vision-camera/blob/main/VisionCamera.podspec
+  s.pod_target_xcconfig = {
+    # > If you are trying to instantiate a class from a static library, you must add the "-ObjC"
+    # > flag to the "Other Linker Flags" build setting.
+    # @see https://stackoverflow.com/questions/2227085/nsclassfromstring-returns-nil
+    "OTHER_LDFLAGS" = ["$(inherited)", "-ObjC", "-lc++"]
+    "DEFINES_MODULE" => "YES",
+    "USE_HEADERMAP" => "YES",
+    "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/ReactCommon\" \"$(PODS_TARGET_SRCROOT)\" \"$(PODS_ROOT)/Headers/Private/React-Core\""
+  }
+  s.requires_arc = true
+
+  s.dependency "React-callinvoker"
+  s.dependency "React"
   s.dependency "React-Core"
 end

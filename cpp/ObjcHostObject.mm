@@ -7,6 +7,8 @@
 #import <Foundation/Foundation.h>
 #import <jsi/jsi.h>
 
+// NSDictionary* classMap = [[NSDictionary alloc] init];
+
 std::vector<jsi::PropNameID> ObjCHostObject::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
@@ -15,6 +17,7 @@ std::vector<jsi::PropNameID> ObjCHostObject::getPropertyNames(jsi::Runtime& rt) 
 
 jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
   auto name = propName.utf8(runtime);
+  NSString* nameNSString = [NSString stringWithUTF8String:name.c_str()];
 
   if (name == "toString") {
     auto toString = [this] (jsi::Runtime& runtime, const jsi::Value&, const jsi::Value*, size_t) -> jsi::Value {
@@ -28,6 +31,26 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
     return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "toString"), 0, toString);
   }
   
+  // @see https://developer.apple.com/documentation/foundation/object_runtime/objective-c_runtime_utilities?language=objc
+  Class clazz = NSClassFromString(nameNSString);
+  if (clazz == nil) {
+    // It's not a class. TODO: check whether it's a variable instead.
+    return jsi::Value::undefined();
+  }
+  
+  Protocol *protocol = NSProtocolFromString(nameNSString);
+  if (protocol == nil) {
+    return jsi::Value::undefined();
+  }
+  
+  SEL selector = NSSelectorFromString(nameNSString);
+  if (selector == nil) {
+    return jsi::Value::undefined();
+  }
+  
+  // Otherwise, it's a value. As far as I can see, we'll have to compile those into the app in advance from the {N} metadata.
+  // strings and numbers will be fine, but there may be a small number of interop.StructType to handle as well.
+  
   // @see https://developer.apple.com/documentation/objectivec/objective-c_runtime?language=objc
   // @see https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Introduction/Introduction.html?language=objc#//apple_ref/doc/uid/TP40008048
   // @see https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html#//apple_ref/doc/uid/TP30001163
@@ -36,10 +59,11 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   int numClasses = objc_getClassList(NULL, 0);
   Class *classes = NULL;
 
-  classes = classes = (__unsafe_unretained Class *)malloc(sizeof(Class) * numClasses);
+  classes = (__unsafe_unretained Class *)malloc(sizeof(Class) * numClasses);
   numClasses = objc_getClassList(classes, numClasses);
   for (int i = 0; i < numClasses; i++) {
-      NSLog(@"Class name: %s", class_getName(classes[i]));
+    NSLog(@"Class name: %s", class_getName(classes[i]));
+    // [classMap setValue:class_getName(classes[i]) forKey:<#(nonnull NSString *)#>]
   }
   
   free(classes);
