@@ -13,6 +13,7 @@
     "android",
     "ios",
     "cpp",
+    "scripts/generate-objc-constants.js",
     "react-native-objc-runtime.podspec",
     "!lib/typescript/example",
     "!android/build",
@@ -51,6 +52,7 @@
     "@react-native-community/eslint-config": "^2.0.0",
     "@release-it/conventional-changelog": "^2.0.0",
     "@types/jest": "^26.0.0",
+    "@types/js-yaml": "^4.0.3",
     "@types/react": "^16.9.19",
     "@types/react-native": "0.64.13",
     "commitlint": "^11.0.0",
@@ -143,5 +145,9 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "yargs": "^17.2.1"
   }
 }
