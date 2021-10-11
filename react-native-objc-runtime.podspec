@@ -20,7 +20,7 @@ Pod::Spec.new do |s|
     # > If you are trying to instantiate a class from a static library, you must add the "-ObjC"
     # > flag to the "Other Linker Flags" build setting.
     # @see https://stackoverflow.com/questions/2227085/nsclassfromstring-returns-nil
-    "OTHER_LDFLAGS" = ["$(inherited)", "-ObjC", "-lc++"]
+    "OTHER_LDFLAGS" => ["$(inherited)", "-ObjC", "-lc++"],
     "DEFINES_MODULE" => "YES",
     "USE_HEADERMAP" => "YES",
     "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/ReactCommon\" \"$(PODS_TARGET_SRCROOT)\" \"$(PODS_ROOT)/Headers/Private/React-Core\""

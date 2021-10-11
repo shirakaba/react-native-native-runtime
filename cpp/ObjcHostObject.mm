@@ -40,11 +40,13 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   
   Protocol *protocol = NSProtocolFromString(nameNSString);
   if (protocol == nil) {
+    // TODO: support protocols
     return jsi::Value::undefined();
   }
   
   SEL selector = NSSelectorFromString(nameNSString);
   if (selector == nil) {
+    // TODO: support selectors
     return jsi::Value::undefined();
   }
   
