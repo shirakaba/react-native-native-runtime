@@ -4,10 +4,10 @@
 #import <stdio.h>
 #import <stdlib.h>
 #import "ObjCHostObject.h"
+#import "gObjcConstants.h"
+#import "JSIUtils.h"
 #import <Foundation/Foundation.h>
 #import <jsi/jsi.h>
-
-// NSDictionary* classMap = [[NSDictionary alloc] init];
 
 std::vector<jsi::PropNameID> ObjCHostObject::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
@@ -33,19 +33,19 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   
   // @see https://developer.apple.com/documentation/foundation/object_runtime/objective-c_runtime_utilities?language=objc
   Class clazz = NSClassFromString(nameNSString);
-  if (clazz == nil) {
-    // It's not a class. TODO: check whether it's a variable instead.
+  if (clazz != nil) {
+    // TODO: support classes
     return jsi::Value::undefined();
   }
   
   Protocol *protocol = NSProtocolFromString(nameNSString);
-  if (protocol == nil) {
+  if (protocol != nil) {
     // TODO: support protocols
     return jsi::Value::undefined();
   }
   
   SEL selector = NSSelectorFromString(nameNSString);
-  if (selector == nil) {
+  if (selector != nil) {
     // TODO: support selectors
     return jsi::Value::undefined();
   }
@@ -53,26 +53,14 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   // Otherwise, it's a value. As far as I can see, we'll have to compile those into the app in advance from the {N} metadata.
   // strings and numbers will be fine, but there may be a small number of interop.StructType to handle as well.
   
+  NSObject *value = [gObjcConstants valueForKey:nameNSString];
+  return convertObjCObjectToJSIValue(runtime, value);
+  
   // @see https://developer.apple.com/documentation/objectivec/objective-c_runtime?language=objc
   // @see https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Introduction/Introduction.html?language=objc#//apple_ref/doc/uid/TP40008048
   // @see https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html#//apple_ref/doc/uid/TP30001163
   // From: https://www.cocoawithlove.com/2010/01/getting-subclasses-of-objective-c-class.html
   // ARC: https://stackoverflow.com/questions/8730697/using-objc-getclasslist-under-arc
-  int numClasses = objc_getClassList(NULL, 0);
-  Class *classes = NULL;
-
-  classes = (__unsafe_unretained Class *)malloc(sizeof(Class) * numClasses);
-  numClasses = objc_getClassList(classes, numClasses);
-  for (int i = 0; i < numClasses; i++) {
-    NSLog(@"Class name: %s", class_getName(classes[i]));
-    // [classMap setValue:class_getName(classes[i]) forKey:<#(nonnull NSString *)#>]
-  }
-  
-  free(classes);
-  
-  // TODO: cache this class list somewhere as a Map for O(1) lookup, and then return a HostObject that's a wrapper around the given class.
-
-  return jsi::Value::undefined();
 }
 
 void ObjCHostObject::assertIsObjCStrong(jsi::Runtime &runtime, const std::string &accessedPropName) {
