@@ -37,12 +37,36 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
   auto name = propName.utf8(runtime);
   NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
   
-  // FIXME: This performs the selector, without any arguments, upon a get access.
-  // Change this so that we'd do this only upon invocations instead, and use any arguments passed in.
-  if([[clazz_ class] respondsToSelector:@selector(nameNSString)]){
-    id returnValue = [[clazz_ class] performSelector:@selector(nameNSString)];
-    // Boy is this unsafe..!
-    return convertObjCObjectToJSIValue(runtime, returnValue);
+  // See also: instancesRespondToSelector, for looking up instance methods.
+  SEL sel = @selector(nameNSString);
+  if([clazz_ respondsToSelector:sel]){
+    auto classMethod = [this, sel] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+      // @see https://jayeshkawli.ghost.io/nsinvocation-in-ios/
+      // @see https://stackoverflow.com/questions/8439052/ios-how-to-implement-a-performselector-with-multiple-arguments-and-with-afterd
+      NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[clazz_ methodSignatureForSelector:sel]];
+      [inv setSelector:sel];
+      [inv setTarget:clazz_];
+      // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
+      int firstArg = 2;
+      for(unsigned int i = 0; i < count; i++){
+        // FIXME: instead of passing NULL, pass a callInvoker.
+        // We need to obtain the callInvoker in order to marshal these JSI args back to NSObject to invoke the method with, e.g.:
+        //   auto callInvoker = bridge.jsCallInvoker;
+        // @see https://github.com/mrousavy/react-native-vision-camera/blob/0f7ee51333c47fbfdf432c8608b9785f8eec3c94/ios/Frame%20Processor/FrameProcessorRuntimeManager.mm#L71
+        // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
+        id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], NULL);
+        [inv setArgument:&objcArg atIndex: firstArg + i];
+      }
+      // [clazz_ performSelector:@selector(nameNSString)];
+      id returnValue = NULL;
+      [inv getReturnValue:&returnValue];
+      
+      // Boy is this unsafe..!
+      return convertObjCObjectToJSIValue(runtime, returnValue);
+    };
+    // FIXME: currently we're specifying an args count of 0. We have no solution for handling arbitrary numbers of args.
+    // ... except, perhaps, accepting a single arg which must strictly be an array..?
+    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, name), 0, classMethod);
   }
   
   return jsi::Value::undefined();
