@@ -53,9 +53,12 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
   auto name = propName.utf8(runtime);
   NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
   
-  // See also: instancesRespondToSelector, for looking up instance methods.
+  // For ClassInstanceHostObject, see instancesRespondToSelector, for looking up instance methods.
   SEL sel = @selector(nameNSString);
   if([clazz_ respondsToSelector:sel]){
+    Method method = class_getClassMethod(clazz_, sel);
+    // Not sure yet how we'll handle varargs, but if it comes to it, we can change approach to enforce a single argument which is strictly an array.
+    unsigned int argsCount = method_getNumberOfArguments(method);
     auto classMethod = [this, sel] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
       RCTBridge *bridge = [RCTBridge currentBridge];
       auto jsCallInvoker = bridge.jsCallInvoker;
@@ -94,10 +97,18 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
       // Boy is this unsafe..!
       return convertObjCObjectToJSIValue(runtime, returnValue);
     };
-    // FIXME: currently we're specifying an args count of 0. We have no solution for handling arbitrary numbers of args.
-    // ... except, perhaps, accepting a single arg which must strictly be an array..?
-    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, name), 0, classMethod);
+    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, name), argsCount, classMethod);
   }
   
-  return jsi::Value::undefined();
+  objc_property_t property = class_getProperty(clazz_, nameNSString.UTF8String);
+  const char *propertyName = property_getName(property);
+  if(propertyName){
+    NSObject* value = [clazz_ valueForKey:[NSString stringWithUTF8String:propertyName]];
+    return convertObjCObjectToJSIValue(runtime, value);
+  }
+  
+  // Next, handle things other than class methods.
+  throw jsi::JSError(runtime, "ClassHostObject::get: We currently only support accesses into class methods and class fields.");
+  
+  // return jsi::Value::undefined();
 }
