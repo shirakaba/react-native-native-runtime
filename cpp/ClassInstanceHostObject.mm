@@ -23,15 +23,37 @@ std::vector<jsi::PropNameID> ClassInstanceHostObject::getPropertyNames(jsi::Runt
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
   
-  // All methods for class. Should be handy.
+  // Copy instance methods.
   // @see https://www.cocoawithlove.com/2008/02/imp-of-current-method.html
-//  unsigned int methodCount;
-//  Method *methodList = class_copyMethodList(clazz_, &methodCount);
-//  for (unsigned int i = 0; i < methodCount; i++){
-//    NSString *selectorNSString = NSStringFromSelector(method_getName(methodList[i]));
-//    result.push_back(jsi::PropNameID::forUtf8(rt, std::string([selectorNSString UTF8String], [selectorNSString lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
-//  }
-//  free(methodList);
+  // @see https://stackoverflow.com/questions/2094702/get-all-methods-of-an-objective-c-class-or-instance
+  unsigned int methodCount;
+  Method *methodList = class_copyMethodList([instance_ class], &methodCount);
+  for (unsigned int i = 0; i < methodCount; i++){
+    NSString *selectorNSString = NSStringFromSelector(method_getName(methodList[i]));
+    result.push_back(jsi::PropNameID::forUtf8(rt, std::string([selectorNSString UTF8String], [selectorNSString lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+  }
+  free(methodList);
+  
+  // Copy properties for this instance's class.
+  unsigned int propertyCount;
+  objc_property_t _Nonnull *propertyList = class_copyPropertyList(object_getClass(instance_), &propertyCount);
+  for (unsigned int i = 0; i < propertyCount; i++){
+    property_getName(propertyList[i]);
+    NSString *propertyNSString = [NSString stringWithUTF8String:property_getName(propertyList[i])];
+    result.push_back(jsi::PropNameID::forUtf8(rt, std::string([propertyNSString UTF8String], [propertyNSString lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+  }
+  free(propertyList);
+  
+  // Copy ivars for this instance.
+  unsigned int ivarCount;
+  Ivar  _Nonnull *ivarList = class_copyIvarList([instance_ class], &ivarCount);
+  for (unsigned int i = 0; i < ivarCount; i++){
+    NSString *ivarNSString = [NSString stringWithUTF8String:ivar_getName(ivarList[i])];
+    result.push_back(jsi::PropNameID::forUtf8(rt, std::string([ivarNSString UTF8String], [ivarNSString lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+  }
+  free(propertyList);
+  
+  // TODO: do the same for subclasses, too.
   
   return result;
 }

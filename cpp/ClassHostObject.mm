@@ -11,6 +11,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBridge+Private.h>
 #import <ReactCommon/RCTTurboModule.h>
+#import "ClassInstanceHostObject.h"
 
 ClassHostObject::ClassHostObject(Class clazz)
 : clazz_(clazz) {}
@@ -23,15 +24,27 @@ std::vector<jsi::PropNameID> ClassHostObject::getPropertyNames(jsi::Runtime& rt)
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
   
-  // All methods for class. Should be handy.
+  // All class methods
   // @see https://www.cocoawithlove.com/2008/02/imp-of-current-method.html
+  // @see https://stackoverflow.com/questions/2094702/get-all-methods-of-an-objective-c-class-or-instance
   unsigned int methodCount;
-  Method *methodList = class_copyMethodList(clazz_, &methodCount);
+  Method *methodList = class_copyMethodList(object_getClass(clazz_), &methodCount);
   for (unsigned int i = 0; i < methodCount; i++){
     NSString *selectorNSString = NSStringFromSelector(method_getName(methodList[i]));
     result.push_back(jsi::PropNameID::forUtf8(rt, std::string([selectorNSString UTF8String], [selectorNSString lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
   }
   free(methodList);
+  
+  // TODO: copy all methods of any subclasses too.
+    
+//  // Copy properties for this instance's class. I think this means instance fields
+//  unsigned int propertyCount;
+//  objc_property_t _Nonnull *propertyList = class_copyPropertyList(clazz_, &propertyCount);
+//  for (unsigned int i = 0; i < propertyCount; i++){
+//    NSString *propertyNSString = [NSString stringWithUTF8String:property_getName(propertyList[i])];
+//    result.push_back(jsi::PropNameID::forUtf8(rt, std::string([propertyNSString UTF8String], [propertyNSString lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+//  }
+//  free(propertyList);
   
   return result;
 }
@@ -58,8 +71,10 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
         if(arguments[i].isObject()){
           jsi::Object obj = arguments[i].asObject(runtime);
           if(obj.isHostObject((runtime))){
-            if(ClassHostObject* classHostObj = dynamic_cast<ClassHostObject*>(obj.asHostObject(runtime).get())) {
+            if(ClassHostObject* classHostObj = dynamic_cast<ClassHostObject*>(obj.asHostObject(runtime).get())){
               [inv setArgument:&classHostObj->clazz_ atIndex: firstArgIndex + i];
+            } else if(ClassInstanceHostObject* classInstanceHostObj = dynamic_cast<ClassInstanceHostObject*>(obj.asHostObject(runtime).get())){
+              [inv setArgument:&classInstanceHostObj->instance_ atIndex: firstArgIndex + i];
             } else {
               // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
               throw jsi::JSError(runtime, "ClassHostObject::get: Unwrapping HostObjects other than ClassHostObject not yet supported!");
