@@ -8,6 +8,9 @@
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
 #import <jsi/jsi.h>
+#import <React/RCTBridge.h>
+#import <React/RCTBridge+Private.h>
+#import <ReactCommon/RCTTurboModule.h>
 
 ClassHostObject::ClassHostObject(Class clazz)
 : clazz_(clazz) {}
@@ -41,23 +44,24 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
   SEL sel = @selector(nameNSString);
   if([clazz_ respondsToSelector:sel]){
     auto classMethod = [this, sel] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+      RCTBridge *bridge = [RCTBridge currentBridge];
+      auto jsCallInvoker = bridge.jsCallInvoker;
       // @see https://jayeshkawli.ghost.io/nsinvocation-in-ios/
       // @see https://stackoverflow.com/questions/8439052/ios-how-to-implement-a-performselector-with-multiple-arguments-and-with-afterd
       NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[clazz_ methodSignatureForSelector:sel]];
       [inv setSelector:sel];
       [inv setTarget:clazz_];
       // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
-      int firstArg = 2;
+      int firstArgIndex = 2;
       for(unsigned int i = 0; i < count; i++){
-        // FIXME: instead of passing NULL, pass a callInvoker.
-        // We need to obtain the callInvoker in order to marshal these JSI args back to NSObject to invoke the method with, e.g.:
-        //   auto callInvoker = bridge.jsCallInvoker;
         // @see https://github.com/mrousavy/react-native-vision-camera/blob/0f7ee51333c47fbfdf432c8608b9785f8eec3c94/ios/Frame%20Processor/FrameProcessorRuntimeManager.mm#L71
-        // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
-        id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], NULL);
-        [inv setArgument:&objcArg atIndex: firstArg + i];
+        if(arguments[i].isObject() && arguments[i].asObject(runtime).isHostObject(runtime)){
+          // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
+          throw jsi::JSError(runtime, "ClassHostObject::get: Unwrapping HostObjects not yet supported!");
+        }
+        id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], jsCallInvoker);
+        [inv setArgument:&objcArg atIndex: firstArgIndex + i];
       }
-      // [clazz_ performSelector:@selector(nameNSString)];
       id returnValue = NULL;
       [inv getReturnValue:&returnValue];
       
