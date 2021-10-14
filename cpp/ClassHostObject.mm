@@ -55,12 +55,23 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
       int firstArgIndex = 2;
       for(unsigned int i = 0; i < count; i++){
         // @see https://github.com/mrousavy/react-native-vision-camera/blob/0f7ee51333c47fbfdf432c8608b9785f8eec3c94/ios/Frame%20Processor/FrameProcessorRuntimeManager.mm#L71
-        if(arguments[i].isObject() && arguments[i].asObject(runtime).isHostObject(runtime)){
-          // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
-          throw jsi::JSError(runtime, "ClassHostObject::get: Unwrapping HostObjects not yet supported!");
+        if(arguments[i].isObject()){
+          jsi::Object obj = arguments[i].asObject(runtime);
+          if(obj.isHostObject((runtime))){
+            if(ClassHostObject* classHostObj = dynamic_cast<ClassHostObject*>(obj.asHostObject(runtime).get())) {
+              [inv setArgument:&classHostObj->clazz_ atIndex: firstArgIndex + i];
+            } else {
+              // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
+              throw jsi::JSError(runtime, "ClassHostObject::get: Unwrapping HostObjects other than ClassHostObject not yet supported!");
+            }
+          } else {
+            id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], jsCallInvoker);
+            [inv setArgument:&objcArg atIndex: firstArgIndex + i];
+          }
+        } else {
+          id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], jsCallInvoker);
+          [inv setArgument:&objcArg atIndex: firstArgIndex + i];
         }
-        id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], jsCallInvoker);
-        [inv setArgument:&objcArg atIndex: firstArgIndex + i];
       }
       id returnValue = NULL;
       [inv getReturnValue:&returnValue];
