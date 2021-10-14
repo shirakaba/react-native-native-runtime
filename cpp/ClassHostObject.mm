@@ -52,6 +52,13 @@ std::vector<jsi::PropNameID> ClassHostObject::getPropertyNames(jsi::Runtime& rt)
 jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
   auto name = propName.utf8(runtime);
   NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
+  if([nameNSString isEqualToString:@"Symbol.toStringTag"]){
+    // This seems to happen when you execute this JS:
+    //   console.log(`objc.NSString:`, objc.NSString);
+    NSString *stringification = @"[object ClassHostObject]";
+    
+    return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
+  }
   
   // For ClassInstanceHostObject, see instancesRespondToSelector, for looking up instance methods.
   SEL sel = @selector(nameNSString);
@@ -101,10 +108,12 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
   }
   
   objc_property_t property = class_getProperty(clazz_, nameNSString.UTF8String);
-  const char *propertyName = property_getName(property);
-  if(propertyName){
-    NSObject* value = [clazz_ valueForKey:[NSString stringWithUTF8String:propertyName]];
-    return convertObjCObjectToJSIValue(runtime, value);
+  if(property){
+    const char *propertyName = property_getName(property);
+    if(propertyName){
+      NSObject* value = [clazz_ valueForKey:[NSString stringWithUTF8String:propertyName]];
+      return convertObjCObjectToJSIValue(runtime, value);
+    }
   }
   
   // Next, handle things other than class methods.

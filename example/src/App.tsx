@@ -1,18 +1,21 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'react-native-objc-runtime';
+// import { multiply } from 'react-native-objc-runtime';
+
+declare const objc: any;
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
   React.useEffect(() => {
-    multiply(3, 7).then(setResult);
+    // multiply(3, 7).then(setResult);
+    console.log(`objc.toString():`, objc.toString());
+    objc.NSString.alloc();
+    // console.log(`objc.NSString:`, objc.NSString);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Text>Placeholder text</Text>
     </View>
   );
 }

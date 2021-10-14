@@ -4,6 +4,7 @@
 #import <stdio.h>
 #import <stdlib.h>
 #import "ObjCHostObject.h"
+#import "ClassHostObject.h"
 #import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
@@ -12,6 +13,7 @@
 std::vector<jsi::PropNameID> ObjCHostObject::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
+  // TODO: list out all the classes, gObjcConstants, and selectors. Not sure about protocols.
   return result;
 }
 
@@ -21,6 +23,7 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
 
   if (name == "toString") {
     auto toString = [this] (jsi::Runtime& runtime, const jsi::Value&, const jsi::Value*, size_t) -> jsi::Value {
+      // TODO: give this a more distinct stringification
       NSString* string = [NSString stringWithFormat:@"objc"];
       return jsi::String::createFromUtf8(runtime, string.UTF8String);
     };
@@ -30,8 +33,9 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   // @see https://developer.apple.com/documentation/foundation/object_runtime/objective-c_runtime_utilities?language=objc
   Class clazz = NSClassFromString(nameNSString);
   if (clazz != nil) {
-    // TODO: support classes
-    return jsi::Value::undefined();
+    // TODO: read up on std::make_shared, std::make_unique, etc. and choose the best one
+    jsi::Object object = jsi::Object::createFromHostObject(runtime, std::make_unique<ClassHostObject>(clazz));
+    return object;
   }
   
   Protocol *protocol = NSProtocolFromString(nameNSString);
@@ -42,7 +46,7 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   
   SEL selector = NSSelectorFromString(nameNSString);
   if (selector != nil) {
-    // TODO: support selectors
+    // TODO: support selectors/methods (we will need to implement a MethodHostObject or something)
     return jsi::Value::undefined();
   }
   
