@@ -20,7 +20,7 @@
     return;
   }
   
-    ObjcRuntimeJsi::install(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+  ObjcRuntimeJsi::install(*(facebook::jsi::Runtime *)cxxBridge.runtime);
 }
 
 - (void)invalidate {
@@ -31,7 +31,7 @@
   if (!cxxBridge.runtime) {
     return;
   }
-    ObjcRuntimeJsi::uninstall(*(facebook::jsi::Runtime *)cxxBridge.runtime);
+  ObjcRuntimeJsi::uninstall(*(facebook::jsi::Runtime *)cxxBridge.runtime);
 }
 
 - (void)dealloc

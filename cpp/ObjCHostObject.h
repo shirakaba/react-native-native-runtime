@@ -7,16 +7,11 @@
 using namespace facebook;
 
 class JSI_EXPORT ObjCHostObject: public jsi::HostObject {
-public:
-  explicit ObjCHostObject(NSObject* objc): objc(objc) {}
 
 public:
   jsi::Value get(jsi::Runtime&, const jsi::PropNameID& name) override;
   std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime& rt) override;
   void close();
-
-public:
-  NSObject* objc;
   
 private:
   void assertIsObjCStrong(jsi::Runtime& runtime, const std::string& accessedPropName);

@@ -21,10 +21,6 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
 
   if (name == "toString") {
     auto toString = [this] (jsi::Runtime& runtime, const jsi::Value&, const jsi::Value*, size_t) -> jsi::Value {
-      if (this->objc == nil) {
-        return jsi::String::createFromUtf8(runtime, "[closed objc]");
-      }
-
       NSString* string = [NSString stringWithFormat:@"objc"];
       return jsi::String::createFromUtf8(runtime, string.UTF8String);
     };
@@ -61,17 +57,4 @@ jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   // @see https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Introduction/introObjectiveC.html#//apple_ref/doc/uid/TP30001163
   // From: https://www.cocoawithlove.com/2010/01/getting-subclasses-of-objective-c-class.html
   // ARC: https://stackoverflow.com/questions/8730697/using-objc-getclasslist-under-arc
-}
-
-void ObjCHostObject::assertIsObjCStrong(jsi::Runtime &runtime, const std::string &accessedPropName) {
-  if (objc == nil) {
-    auto message = "Cannot get `" + accessedPropName + "`, objc is already closed!";
-    throw jsi::JSError(runtime, message.c_str());
-  }
-}
-
-void ObjCHostObject::close() {
-  if (objc != nil) {
-    this->objc = nil;
-  }
 }

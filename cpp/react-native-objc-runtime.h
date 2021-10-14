@@ -1,21 +1,14 @@
-#import "react-native-objc-runtime.h"
-#import "JSIUtils.h"
+#ifndef OBJC_RUNTIME_H
+#define OBJC_RUNTIME_H
 
-#include <iostream>
-#include <functional>
-#include <sstream>
-
-using namespace facebook;
+#include <jsi/jsilib.h>
+#include <jsi/jsi.h>
 
 namespace ObjcRuntimeJsi {
-void install(jsi::Runtime& jsiRuntime) {
-  std::cout << "Initialising Obj-C JSI" << "\n";
 
-  // TODO: set host object here
-}
+void install(facebook::jsi::Runtime &jsiRuntime);
+void uninstall(facebook::jsi::Runtime &jsiRuntime);
 
-void uninstall(jsi::Runtime& jsiRuntime) {
-  // We seemingly can't remove the property altogether, but let's at least try to set it to undefined.
-  jsiRuntime.global().setProperty(jsiRuntime, "objc", jsi::Value::undefined());
-}
-} // namespace ObjcRuntime
+} // namespace example
+
+#endif /* OBJC_RUNTIME_H */
