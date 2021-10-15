@@ -61,9 +61,12 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
   }
   
   // For ClassInstanceHostObject, see instancesRespondToSelector, for looking up instance methods.
-  SEL sel = @selector(nameNSString);
+  SEL sel = NSSelectorFromString(nameNSString);
   if([clazz_ respondsToSelector:sel]){
     Method method = class_getClassMethod(clazz_, sel);
+    if(!method){
+      throw jsi::JSError(runtime, "ClassHostObject::get: class responded to selector, but the corresponding method was unable to be retrieved. Perhaps it's an instance method? On classes, you can only call class methods.");
+    }
     // Not sure yet how we'll handle varargs, but if it comes to it, we can change approach to enforce a single argument which is strictly an array.
     unsigned int argsCount = method_getNumberOfArguments(method);
     auto classMethod = [this, sel] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
