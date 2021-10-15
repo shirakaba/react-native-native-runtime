@@ -101,8 +101,12 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
           [inv setArgument:&objcArg atIndex: firstArgIndex + i];
         }
       }
+      [inv invoke];
       id returnValue = NULL;
       [inv getReturnValue:&returnValue];
+      
+      // FIXME: In the case of NSString.alloc(), returnValue is an NSPlaceholderString.
+      // It can't be converted directly into a JSI value; it needs to be wrapped into a HostObject first, then returned.
       
       // Boy is this unsafe..!
       return convertObjCObjectToJSIValue(runtime, returnValue);
