@@ -8,10 +8,11 @@ declare const objc: any;
 export default function App() {
   React.useEffect(() => {
     // multiply(3, 7).then(setResult);
-    console.log(`objc.toString():`, objc.toString());
-    const nsString = objc.NSString.alloc();
-    console.log(`nsString:`, nsString);
-    nsString.init();
+    // console.log(`objc.toString():`, objc.toString());
+    // const nsPlaceholderString = objc.NSString.alloc();
+    // console.log(`nsString:`, nsString);
+    // nsPlaceholderString.init();
+    objc.NSString.alloc()['initWithString:']('Hello, world!');
     // console.log(`objc.NSString:`, objc.NSString);
   }, []);
 

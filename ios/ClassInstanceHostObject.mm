@@ -11,6 +11,7 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBridge+Private.h>
 #import <ReactCommon/RCTTurboModule.h>
+#import "HostObjectUtils.h"
 
 ClassInstanceHostObject::ClassInstanceHostObject(NSObject *instance)
 : instance_(instance) {}
@@ -61,50 +62,41 @@ std::vector<jsi::PropNameID> ClassInstanceHostObject::getPropertyNames(jsi::Runt
 jsi::Value ClassInstanceHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
   auto name = propName.utf8(runtime);
   NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
+  if([nameNSString isEqualToString:@"Symbol.toStringTag"]){
+    // This seems to happen when you execute this JS:
+    //   console.log(`objc.NSString:`, objc.NSString);
+    NSString *stringification = @"[object ClassInstanceHostObject]";
+    
+    return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
+  }
   
-  // See also: instancesRespondToSelector, for looking up instance methods.
-  SEL sel = @selector(nameNSString);
-//  if([clazz_ respondsToSelector:sel]){
-//    auto classMethod = [this, sel] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
-//      RCTBridge *bridge = [RCTBridge currentBridge];
-//      auto jsCallInvoker = bridge.jsCallInvoker;
-//      // @see https://jayeshkawli.ghost.io/nsinvocation-in-ios/
-//      // @see https://stackoverflow.com/questions/8439052/ios-how-to-implement-a-performselector-with-multiple-arguments-and-with-afterd
-//      NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[clazz_ methodSignatureForSelector:sel]];
-//      [inv setSelector:sel];
-//      [inv setTarget:clazz_];
-//      // arguments 0 and 1 are self and _cmd respectively, automatically set by NSInvocation
-//      int firstArgIndex = 2;
-//      for(unsigned int i = 0; i < count; i++){
-//        // @see https://github.com/mrousavy/react-native-vision-camera/blob/0f7ee51333c47fbfdf432c8608b9785f8eec3c94/ios/Frame%20Processor/FrameProcessorRuntimeManager.mm#L71
-//        if(arguments[i].isObject()){
-//          jsi::Object obj = arguments[i].asObject(runtime);
-//          if(obj.isHostObject((runtime))){
-//            if(ClassInstanceHostObject* classHostObj = dynamic_cast<ClassInstanceHostObject*>(obj.asHostObject(runtime).get())) {
-//              [inv setArgument:&classHostObj->clazz_ atIndex: firstArgIndex + i];
-//            } else {
-//              // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
-//              throw jsi::JSError(runtime, "ClassInstanceHostObject::get: Unwrapping HostObjects other than ClassInstanceHostObject not yet supported!");
-//            }
-//          } else {
-//            id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], jsCallInvoker);
-//            [inv setArgument:&objcArg atIndex: firstArgIndex + i];
-//          }
-//        } else {
-//          id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], jsCallInvoker);
-//          [inv setArgument:&objcArg atIndex: firstArgIndex + i];
-//        }
-//      }
-//      id returnValue = NULL;
-//      [inv getReturnValue:&returnValue];
-//
-//      // Boy is this unsafe..!
-//      return convertObjCObjectToJSIValue(runtime, returnValue);
-//    };
-//    // FIXME: currently we're specifying an args count of 0. We have no solution for handling arbitrary numbers of args.
-//    // ... except, perhaps, accepting a single arg which must strictly be an array..?
-//    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, name), 0, classMethod);
-//  }
+  if([nameNSString isEqualToString:@"$$typeof"]){
+    // This seems to happen when you execute this JS:
+    //   const nsString = objc.NSString.alloc();
+    //   console.log(`nsString:`, nsString);
+    // FIXME: My approach here seems to be incorrect, as it puts us into an infinite loop of (approximately):
+    // $$typeof -> Symbol.toStringTag -> toJSON -> Symbol.toStringTag -> Symbol.toStringTag -> Symbol.toStringTag -> Symbol.toStringTag -> toString
+    NSString *stringification = NSStringFromClass([instance_ class]);
+    return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
+  }
   
-  return jsi::Value::undefined();
+  // For ClassInstanceHostObject, see instancesRespondToSelector, for looking up instance methods.
+  SEL sel = NSSelectorFromString(nameNSString);
+  if([instance_ respondsToSelector:sel]){
+    return invokeClassInstanceMethod(runtime, name, sel, instance_);
+  }
+  
+  objc_property_t property = class_getProperty([instance_ class], nameNSString.UTF8String);
+  if(property){
+    const char *propertyName = property_getName(property);
+    if(propertyName){
+      NSObject* value = [instance_ valueForKey:[NSString stringWithUTF8String:propertyName]];
+      return convertObjCObjectToJSIValue(runtime, value);
+    }
+  }
+  
+  // Next, handle things other than class methods.
+  throw jsi::JSError(runtime, "ClassInstanceHostObject::get: We currently only support accesses into class instance methods and class properties.");
+  
+  // return jsi::Value::undefined();
 }
