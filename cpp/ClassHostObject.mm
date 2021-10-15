@@ -105,8 +105,13 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
       id returnValue = NULL;
       [inv getReturnValue:&returnValue];
       
-      // FIXME: In the case of NSString.alloc(), returnValue is an NSPlaceholderString.
-      // It can't be converted directly into a JSI value; it needs to be wrapped into a HostObject first, then returned.
+      // isKindOfClass checks whether the returnValue is an instance of any subclass of NSObject or NSObject itself.
+      // There is also isMemberOfClass if we ever want to check whether it is an instance of NSObject (not a subclass).
+      if([returnValue isKindOfClass:[NSObject class]]){
+        return jsi::Object::createFromHostObject(runtime, std::make_shared<ClassInstanceHostObject>(returnValue));
+      }
+      
+      // If we get blocked by "Did you forget to nest alloc and init?", we may be restricted to [NSString new].
       
       // Boy is this unsafe..!
       return convertObjCObjectToJSIValue(runtime, returnValue);
