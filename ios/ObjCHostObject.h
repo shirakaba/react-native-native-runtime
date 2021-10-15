@@ -6,7 +6,7 @@
 
 using namespace facebook;
 
-class JSI_EXPORT ObjCHostObject: public jsi::HostObject {
+class JSI_EXPORT ObjcHostObject: public jsi::HostObject {
 
 public:
   jsi::Value get(jsi::Runtime&, const jsi::PropNameID& name) override;
@@ -14,5 +14,5 @@ public:
   void close();
   
 private:
-  void assertIsObjCStrong(jsi::Runtime& runtime, const std::string& accessedPropName);
+  void assertIsObjcStrong(jsi::Runtime& runtime, const std::string& accessedPropName);
 };

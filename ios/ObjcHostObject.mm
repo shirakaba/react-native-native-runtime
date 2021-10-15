@@ -3,21 +3,21 @@
 #import <objc/runtime.h>
 #import <stdio.h>
 #import <stdlib.h>
-#import "ObjCHostObject.h"
+#import "ObjcHostObject.h"
 #import "ClassHostObject.h"
 #import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
 #import <jsi/jsi.h>
 
-std::vector<jsi::PropNameID> ObjCHostObject::getPropertyNames(jsi::Runtime& rt) {
+std::vector<jsi::PropNameID> ObjcHostObject::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
   // TODO: list out all the classes, gObjcConstants, and selectors. Not sure about protocols.
   return result;
 }
 
-jsi::Value ObjCHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
+jsi::Value ObjcHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
   auto name = propName.utf8(runtime);
   NSString* nameNSString = [NSString stringWithUTF8String:name.c_str()];
 

@@ -1,5 +1,5 @@
 #import "react-native-objc-runtime.h"
-#import "ObjCHostObject.h"
+#import "ObjcHostObject.h"
 #import "JSIUtils.h"
 #import <jsi/jsi.h>
 
@@ -14,7 +14,7 @@ namespace ObjcRuntimeJsi {
 void install(jsi::Runtime& jsiRuntime) {
   std::cout << "Initialising Obj-C JSI" << "\n";
 
-  jsi::Object object = jsi::Object::createFromHostObject(jsiRuntime, std::make_unique<ObjCHostObject>());
+  jsi::Object object = jsi::Object::createFromHostObject(jsiRuntime, std::make_unique<ObjcHostObject>());
   jsiRuntime.global().setProperty(jsiRuntime, "objc", std::move(object));
 }
 
