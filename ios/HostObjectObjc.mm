@@ -5,6 +5,8 @@
 #import <stdlib.h>
 #import "HostObjectObjc.h"
 #import "HostObjectClass.h"
+#import "HostObjectSelector.h"
+#import "HostObjectProtocol.h"
 #import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
@@ -40,14 +42,15 @@ jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   
   Protocol *protocol = NSProtocolFromString(nameNSString);
   if (protocol != nil) {
-    // TODO: support protocols
-    return jsi::Value::undefined();
+    jsi::Object object = jsi::Object::createFromHostObject(runtime, std::make_unique<HostObjectProtocol>(protocol));
+    return object;
   }
   
-  SEL selector = NSSelectorFromString(nameNSString);
-  if (selector != nil) {
-    // TODO: support selectors/methods (we will need to implement a MethodHostObject or something)
-    return jsi::Value::undefined();
+  SEL sel = NSSelectorFromString(nameNSString);
+  if (sel != nil) {
+    // TODO: support methods as well?
+    jsi::Object object = jsi::Object::createFromHostObject(runtime, std::make_unique<HostObjectSelector>(sel));
+    return object;
   }
   
   // Otherwise, it's a value. As far as I can see, we'll have to compile those into the app in advance from the {N} metadata.
