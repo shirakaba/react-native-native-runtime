@@ -15,7 +15,21 @@
 std::vector<jsi::PropNameID> HostObjectObjc::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
-  // TODO: list out all the classes, gObjcConstants, and selectors. Not sure about protocols.
+  
+  // List out the classes
+  int numClasses = objc_getClassList(NULL, 0);
+  Class *classes = (__unsafe_unretained Class *)malloc(sizeof(Class) *numClasses);
+  numClasses = objc_getClassList(classes, numClasses);
+  for (int i = 0; i < numClasses; i++) {
+    result.push_back(jsi::PropNameID::forUtf8(rt, std::string(class_getName(classes[i]))));
+  }
+  free(classes);
+  
+  for (NSString* key in [gObjcConstants allKeys] ) {
+    result.push_back(jsi::PropNameID::forUtf8(rt, std::string([key UTF8String], [key lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+  }
+  
+  // I'm not aware of any objc runtime function by which to list out selectors and protocols!
   return result;
 }
 
@@ -25,14 +39,15 @@ jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
 
   if (name == "toString") {
     auto toString = [this] (jsi::Runtime& runtime, const jsi::Value&, const jsi::Value*, size_t) -> jsi::Value {
-      // TODO: give this a more distinct stringification
-      NSString* string = [NSString stringWithFormat:@"objc"];
+      NSString* string = [NSString stringWithFormat:@"[object HostObjectObjc]"];
       return jsi::String::createFromUtf8(runtime, string.UTF8String);
     };
     return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "toString"), 0, toString);
   }
   
+  // Cover all the type lookup utilities one-by-one!
   // @see https://developer.apple.com/documentation/foundation/object_runtime/objective-c_runtime_utilities?language=objc
+
   Class clazz = NSClassFromString(nameNSString);
   if (clazz != nil) {
     // TODO: read up on std::make_shared, std::make_unique, etc. and choose the best one
