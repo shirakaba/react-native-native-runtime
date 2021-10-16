@@ -112,8 +112,9 @@ function buildConstantsJson(doc) {
       const parsedValue = parseInt(value, 10);
       if (isNaN(parsedValue)) {
         console.warn(
-          `${logPrefix} Unexpectedly got NaN parsing value: "${value}" for item "${item.Name}". Won't include it.`
+          `${logPrefix} Unexpectedly got NaN parsing value: "${value}" for item "${item.Name}". Will leave it as a string.`
         );
+        acc[item.Name] = value;
         return acc;
       }
       acc[item.Name] = parsedValue;
@@ -131,8 +132,9 @@ function buildConstantsJson(doc) {
           const parsedValue = parseInt(value, 10);
           if (isNaN(parsedValue)) {
             console.warn(
-              `${logPrefix} Unexpectedly got NaN parsing value: "${value}" for key "${key}" of item "${item.Name}". Won't include it.`
+              `${logPrefix} Unexpectedly got NaN parsing value: "${value}" for key "${key}" of item "${item.Name}". Will leave it as a string.`
             );
+            acc[key] = value;
             return;
           }
           acc[key] = parsedValue;
