@@ -7,14 +7,14 @@
 
 using namespace facebook;
 
-class JSI_EXPORT ClassInstanceHostObject: public jsi::HostObject {
+class JSI_EXPORT HostObjectClass: public jsi::HostObject {
 public:
-  ClassInstanceHostObject(NSObject* instance);
-  ~ClassInstanceHostObject();
+  HostObjectClass(Class clazz);
+  ~HostObjectClass();
 
 public:
   jsi::Value get(jsi::Runtime&, const jsi::PropNameID& name) override;
   std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime& rt) override;
 
-  NSObject* instance_;
+  Class clazz_;
 };

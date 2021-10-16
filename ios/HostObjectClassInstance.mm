@@ -3,7 +3,7 @@
 #import <objc/runtime.h>
 #import <stdio.h>
 #import <stdlib.h>
-#import "ClassInstanceHostObject.h"
+#import "HostObjectClassInstance.h"
 #import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
@@ -13,14 +13,14 @@
 #import <ReactCommon/RCTTurboModule.h>
 #import "HostObjectUtils.h"
 
-ClassInstanceHostObject::ClassInstanceHostObject(NSObject *instance)
+HostObjectClassInstance::HostObjectClassInstance(NSObject *instance)
 : instance_(instance) {}
 
-ClassInstanceHostObject::~ClassInstanceHostObject() {
+HostObjectClassInstance::~HostObjectClassInstance() {
   NSObject *instance = instance_;
 }
 
-std::vector<jsi::PropNameID> ClassInstanceHostObject::getPropertyNames(jsi::Runtime& rt) {
+std::vector<jsi::PropNameID> HostObjectClassInstance::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
   
@@ -59,13 +59,13 @@ std::vector<jsi::PropNameID> ClassInstanceHostObject::getPropertyNames(jsi::Runt
   return result;
 }
 
-jsi::Value ClassInstanceHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
+jsi::Value HostObjectClassInstance::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
   auto name = propName.utf8(runtime);
   NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
   if([nameNSString isEqualToString:@"Symbol.toStringTag"]){
     // This seems to happen when you execute this JS:
     //   console.log(`objc.NSString:`, objc.NSString);
-    NSString *stringification = @"[object ClassInstanceHostObject]";
+    NSString *stringification = @"[object HostObjectClassInstance]";
     
     return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
   }
@@ -80,7 +80,7 @@ jsi::Value ClassInstanceHostObject::get(jsi::Runtime& runtime, const jsi::PropNa
     return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
   }
   
-  // For ClassInstanceHostObject, see instancesRespondToSelector, for looking up instance methods.
+  // For HostObjectClassInstance, see instancesRespondToSelector, for looking up instance methods.
   SEL sel = NSSelectorFromString(nameNSString);
   if([instance_ respondsToSelector:sel]){
     return invokeClassInstanceMethod(runtime, name, sel, instance_);
@@ -96,7 +96,7 @@ jsi::Value ClassInstanceHostObject::get(jsi::Runtime& runtime, const jsi::PropNa
   }
   
   // Next, handle things other than class methods.
-  throw jsi::JSError(runtime, "ClassInstanceHostObject::get: We currently only support accesses into class instance methods and class properties.");
+  throw jsi::JSError(runtime, "HostObjectClassInstance::get: We currently only support accesses into class instance methods and class properties.");
   
   // return jsi::Value::undefined();
 }

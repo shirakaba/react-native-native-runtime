@@ -3,7 +3,6 @@
 #import <objc/runtime.h>
 #import <stdio.h>
 #import <stdlib.h>
-#import "ClassHostObject.h"
 #import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
@@ -11,17 +10,18 @@
 #import <React/RCTBridge.h>
 #import <React/RCTBridge+Private.h>
 #import <ReactCommon/RCTTurboModule.h>
-#import "ClassInstanceHostObject.h"
+#import "HostObjectClass.h"
+#import "HostObjectClassInstance.h"
 #import "HostObjectUtils.h"
 
-ClassHostObject::ClassHostObject(Class clazz)
+HostObjectClass::HostObjectClass(Class clazz)
 : clazz_(clazz) {}
 
-ClassHostObject::~ClassHostObject() {
+HostObjectClass::~HostObjectClass() {
   Class clazz = clazz_;
 }
 
-std::vector<jsi::PropNameID> ClassHostObject::getPropertyNames(jsi::Runtime& rt) {
+std::vector<jsi::PropNameID> HostObjectClass::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
   
@@ -50,18 +50,18 @@ std::vector<jsi::PropNameID> ClassHostObject::getPropertyNames(jsi::Runtime& rt)
   return result;
 }
 
-jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
+jsi::Value HostObjectClass::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
   auto name = propName.utf8(runtime);
   NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
   if([nameNSString isEqualToString:@"Symbol.toStringTag"]){
     // This seems to happen when you execute this JS:
     //   console.log(`objc.NSString:`, objc.NSString);
-    NSString *stringification = @"[object ClassHostObject]";
+    NSString *stringification = @"[object HostObjectClass]";
     
     return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
   }
   
-  // For ClassInstanceHostObject, see instancesRespondToSelector, for looking up instance methods.
+  // For HostObjectClassInstance, see instancesRespondToSelector, for looking up instance methods.
   SEL sel = NSSelectorFromString(nameNSString);
   if([clazz_ respondsToSelector:sel]){
     return invokeClassMethod(runtime, name, sel, clazz_);
@@ -77,7 +77,7 @@ jsi::Value ClassHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
   }
   
   // Next, handle things other than class methods.
-  throw jsi::JSError(runtime, "ClassHostObject::get: We currently only support accesses into class methods and class fields.");
+  throw jsi::JSError(runtime, "HostObjectClass::get: We currently only support accesses into class methods and class fields.");
   
   // return jsi::Value::undefined();
 }

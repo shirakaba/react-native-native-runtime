@@ -3,21 +3,21 @@
 #import <objc/runtime.h>
 #import <stdio.h>
 #import <stdlib.h>
-#import "ObjcHostObject.h"
-#import "ClassHostObject.h"
+#import "HostObjectObjc.h"
+#import "HostObjectClass.h"
 #import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
 #import <jsi/jsi.h>
 
-std::vector<jsi::PropNameID> ObjcHostObject::getPropertyNames(jsi::Runtime& rt) {
+std::vector<jsi::PropNameID> HostObjectObjc::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
   // TODO: list out all the classes, gObjcConstants, and selectors. Not sure about protocols.
   return result;
 }
 
-jsi::Value ObjcHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
+jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
   auto name = propName.utf8(runtime);
   NSString* nameNSString = [NSString stringWithUTF8String:name.c_str()];
 
@@ -34,7 +34,7 @@ jsi::Value ObjcHostObject::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
   Class clazz = NSClassFromString(nameNSString);
   if (clazz != nil) {
     // TODO: read up on std::make_shared, std::make_unique, etc. and choose the best one
-    jsi::Object object = jsi::Object::createFromHostObject(runtime, std::make_unique<ClassHostObject>(clazz));
+    jsi::Object object = jsi::Object::createFromHostObject(runtime, std::make_unique<HostObjectClass>(clazz));
     return object;
   }
   

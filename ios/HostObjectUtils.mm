@@ -8,8 +8,8 @@
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTBridge.h>
 #import <ReactCommon/TurboModuleUtils.h>
-#import "ClassHostObject.h"
-#import "ClassInstanceHostObject.h"
+#import "HostObjectClass.h"
+#import "HostObjectClassInstance.h"
 
 using namespace facebook;
 using namespace facebook::react;
@@ -39,10 +39,10 @@ jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string metho
       if(arguments[i].isObject()){
         jsi::Object obj = arguments[i].asObject(runtime);
         if(obj.isHostObject((runtime))){
-          if(ClassHostObject* classHostObj = dynamic_cast<ClassHostObject*>(obj.asHostObject(runtime).get())){
-            [inv setArgument:&classHostObj->clazz_ atIndex: reservedArgs + i];
-          } else if(ClassInstanceHostObject* classInstanceHostObj = dynamic_cast<ClassInstanceHostObject*>(obj.asHostObject(runtime).get())){
-            [inv setArgument:&classInstanceHostObj->instance_ atIndex: reservedArgs + i];
+          if(HostObjectClass* hostObjectClass = dynamic_cast<HostObjectClass*>(obj.asHostObject(runtime).get())){
+            [inv setArgument:&hostObjectClass->clazz_ atIndex: reservedArgs + i];
+          } else if(HostObjectClassInstance* hostObjectClassInstance = dynamic_cast<HostObjectClassInstance*>(obj.asHostObject(runtime).get())){
+            [inv setArgument:&hostObjectClassInstance->instance_ atIndex: reservedArgs + i];
           } else {
             // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
             throw jsi::JSError(runtime, "invokeClassInstanceMethod: Unwrapping HostObjects other than ClassHostObject not yet supported!");
@@ -63,7 +63,7 @@ jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string metho
     // isKindOfClass checks whether the returnValue is an instance of any subclass of NSObject or NSObject itself.
     // There is also isMemberOfClass if we ever want to check whether it is an instance of NSObject (not a subclass).
     if([returnValue isKindOfClass:[NSObject class]]){
-      return jsi::Object::createFromHostObject(runtime, std::make_shared<ClassInstanceHostObject>(returnValue));
+      return jsi::Object::createFromHostObject(runtime, std::make_shared<HostObjectClassInstance>(returnValue));
     }
     
     // If we get blocked by "Did you forget to nest alloc and init?", we may be restricted to [NSString new].
@@ -98,13 +98,13 @@ jsi::Function invokeClassMethod(jsi::Runtime &runtime, std::string methodName, S
       if(arguments[i].isObject()){
         jsi::Object obj = arguments[i].asObject(runtime);
         if(obj.isHostObject((runtime))){
-          if(ClassHostObject* classHostObj = dynamic_cast<ClassHostObject*>(obj.asHostObject(runtime).get())){
-            [inv setArgument:&classHostObj->clazz_ atIndex: reservedArgs + i];
-          } else if(ClassInstanceHostObject* classInstanceHostObj = dynamic_cast<ClassInstanceHostObject*>(obj.asHostObject(runtime).get())){
-            [inv setArgument:&classInstanceHostObj->instance_ atIndex: reservedArgs + i];
+          if(HostObjectClass* hostObjectClass = dynamic_cast<HostObjectClass*>(obj.asHostObject(runtime).get())){
+            [inv setArgument:&hostObjectClass->clazz_ atIndex: reservedArgs + i];
+          } else if(HostObjectClassInstance* hostObjectClassInstance = dynamic_cast<HostObjectClassInstance*>(obj.asHostObject(runtime).get())){
+            [inv setArgument:&hostObjectClassInstance->instance_ atIndex: reservedArgs + i];
           } else {
             // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
-            throw jsi::JSError(runtime, "invokeClassMethod: Unwrapping HostObjects other than ClassHostObject not yet supported!");
+            throw jsi::JSError(runtime, "invokeClassMethod: Unwrapping HostObjects other than HostObjectClass not yet supported!");
           }
         } else {
           id objcArg = convertJSIValueToObjCObject(runtime, arguments[i], jsCallInvoker);
@@ -122,7 +122,7 @@ jsi::Function invokeClassMethod(jsi::Runtime &runtime, std::string methodName, S
     // isKindOfClass checks whether the returnValue is an instance of any subclass of NSObject or NSObject itself.
     // There is also isMemberOfClass if we ever want to check whether it is an instance of NSObject (not a subclass).
     if([returnValue isKindOfClass:[NSObject class]]){
-      return jsi::Object::createFromHostObject(runtime, std::make_shared<ClassInstanceHostObject>(returnValue));
+      return jsi::Object::createFromHostObject(runtime, std::make_shared<HostObjectClassInstance>(returnValue));
     }
     
     // If we get blocked by "Did you forget to nest alloc and init?", we may be restricted to [NSString new].
