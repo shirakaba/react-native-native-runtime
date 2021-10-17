@@ -5,6 +5,7 @@
 #import <stdlib.h>
 #import "HostObjectObjc.h"
 #import "HostObjectClass.h"
+#import "HostObjectClassInstance.h"
 #import "HostObjectSelector.h"
 #import "HostObjectProtocol.h"
 #import "gObjcConstants.h"
@@ -15,6 +16,7 @@
 std::vector<jsi::PropNameID> HostObjectObjc::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
   result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
+  result.push_back(jsi::PropNameID::forUtf8(rt, std::string("marshal")));
   
   // List out the classes
   int numClasses = objc_getClassList(NULL, 0);
@@ -43,6 +45,24 @@ jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
       return jsi::String::createFromUtf8(runtime, string.UTF8String);
     };
     return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "toString"), 0, toString);
+  }
+  
+  if (name == "marshal") {
+    auto marshal = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+      if(!arguments[0].isObject()){
+        throw jsi::JSError(runtime, "TypeError: expected to be passed a HostObjectClassInstance.");
+      }
+      jsi::Object obj = arguments[0].asObject(runtime);
+      if(!obj.isHostObject((runtime))){
+        throw jsi::JSError(runtime, "TypeError: expected to be passed a HostObjectClassInstance.");
+      }
+      if(HostObjectClassInstance* hostObjectClassInstance = dynamic_cast<HostObjectClassInstance*>(obj.asHostObject(runtime).get())){
+        return convertObjCObjectToJSIValue(runtime, hostObjectClassInstance->instance_);
+      }
+      
+      throw jsi::JSError(runtime, "TypeError: expected to be passed a HostObjectClassInstance.");
+    };
+    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "marshal"), 1, marshal);
   }
   
   // Cover all the type lookup utilities one-by-one!

@@ -14,7 +14,7 @@ namespace ObjcRuntimeJsi {
 void install(jsi::Runtime& jsiRuntime) {
   std::cout << "Initialising Obj-C JSI" << "\n";
 
-  jsi::Object object = jsi::Object::createFromHostObject(jsiRuntime, std::make_unique<HostObjectObjc>());
+  jsi::Object object = jsi::Object::createFromHostObject(jsiRuntime, std::make_shared<HostObjectObjc>());
   jsiRuntime.global().setProperty(jsiRuntime, "objc", std::move(object));
 }
 

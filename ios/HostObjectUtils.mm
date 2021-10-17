@@ -13,7 +13,9 @@
 
 using namespace facebook;
 using namespace facebook::react;
-
+// FIXME: upon several fast refreshes, I found that our NSString instance (held by HostObjectClassInstance) had become
+// nil at the time of calling 'stringByApplyingTransform:reverse:'.
+// This likely indicates that nothing's keeping a strong reference to it.
 jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string methodName, SEL sel, NSObject *instance)
 {
   Method method = class_getInstanceMethod([instance class], sel);

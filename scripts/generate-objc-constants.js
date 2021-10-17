@@ -104,6 +104,7 @@ function buildConstantsJson(doc) {
   }
 
   return Items.reduce((acc, item) => {
+    // @see https://developer.apple.com/documentation/swift/objective-c_and_c_code_customization/grouping_related_objective-c_constants
     if (item.Type === 'EnumConstant') {
       const value =
         /** @type {import('./generate-objc-constants-types').MetadataItemEnumConstant} */ (
@@ -142,6 +143,24 @@ function buildConstantsJson(doc) {
       });
       return acc;
     }
+
+    // Obj-C doesn't offer any tools to look up variables at runtime.
+    // It's just a pity that there are many variables, particularly NSString ones like NSStringTransformToLatin,
+    // that are constant in nature (and used effectively as enums), yet not declared as such (you can't statically
+    // declare an NSString).
+    // I wonder whether we could do it using dlsym..?
+    //
+    // if (item.Type === 'Var') {
+    //   const signature =
+    //     /** @type {import('./generate-objc-constants-types').MetadataItemVar} */ (
+    //       item
+    //     ).Signature;
+    //   if (signature.Type === 'Interface' && signature.Name === 'NSString') {
+    //     acc[item.Name] = /* I'd assign its value here... if only the headers held it! */;
+    //   }
+
+    //   return acc;
+    // }
 
     if (
       ![

@@ -57,13 +57,21 @@ export interface MetadataProtocol extends MetadataItem<'Protocol'> {
  * @example NSHTTPCookieVersion holds an interface
  * @example NSHashTableCopyIn holds an Enum
  * @example NSIntMapValueCallBacks holds a Struct
+ * @example NSStringTransformToLatin holds an Interface by the name of NSString.
  */
-export interface MetadataVar extends MetadataItem<'Var'> {
-  Signature: {
-    Type: MetadataItemType;
-    Name: string;
-    [string: any];
-  };
+export interface MetadataItemVar extends MetadataItem<'Var'> {
+  Signature:
+    | {
+        Type: MetadataItemType;
+        Name: string;
+        [string: any];
+      }
+    // I'll type each simple common case.
+    | {
+        Type: 'Interface';
+        Name: 'NSString';
+        WithProtocols: [];
+      };
   [string: any];
 }
 
