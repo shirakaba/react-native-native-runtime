@@ -46,7 +46,7 @@ export default function App() {
     );
 
     console.log(
-      'Look up the global constant "NSStringTransformLatinToHiragana" in order to transliterate Japanese Hiragana to Latin, given "しらかば":',
+      'Look up the global variable "NSStringTransformLatinToHiragana" in order to transliterate Japanese Hiragana to Latin, given "しらかば":',
       objc.marshal(
         objc.NSString.alloc()
           ['initWithString:']('しらかば')

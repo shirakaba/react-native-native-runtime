@@ -17,9 +17,7 @@
 HostObjectClass::HostObjectClass(Class clazz)
 : clazz_(clazz) {}
 
-HostObjectClass::~HostObjectClass() {
-  Class clazz = clazz_;
-}
+HostObjectClass::~HostObjectClass() {}
 
 std::vector<jsi::PropNameID> HostObjectClass::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
@@ -78,6 +76,4 @@ jsi::Value HostObjectClass::get(jsi::Runtime& runtime, const jsi::PropNameID& pr
   
   // Next, handle things other than class methods.
   throw jsi::JSError(runtime, "HostObjectClass::get: We currently only support accesses into class methods and class fields.");
-  
-  // return jsi::Value::undefined();
 }

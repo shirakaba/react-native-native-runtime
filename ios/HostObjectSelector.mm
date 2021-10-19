@@ -16,9 +16,7 @@
 HostObjectSelector::HostObjectSelector(SEL sel)
 : sel_(sel) {}
 
-HostObjectSelector::~HostObjectSelector() {
-  SEL sel = sel_;
-}
+HostObjectSelector::~HostObjectSelector() {}
 
 std::vector<jsi::PropNameID> HostObjectSelector::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;

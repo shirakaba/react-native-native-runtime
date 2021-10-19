@@ -11,8 +11,4 @@ class JSI_EXPORT HostObjectObjc: public jsi::HostObject {
 public:
   jsi::Value get(jsi::Runtime&, const jsi::PropNameID& name) override;
   std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime& rt) override;
-  void close();
-  
-private:
-  void assertIsObjcStrong(jsi::Runtime& runtime, const std::string& accessedPropName);
 };

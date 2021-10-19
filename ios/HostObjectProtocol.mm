@@ -16,9 +16,7 @@
 HostObjectProtocol::HostObjectProtocol(Protocol *protocol)
 : protocol_(protocol) {}
 
-HostObjectProtocol::~HostObjectProtocol() {
-  Protocol *protocol = protocol_;
-}
+HostObjectProtocol::~HostObjectProtocol() {}
 
 std::vector<jsi::PropNameID> HostObjectProtocol::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;

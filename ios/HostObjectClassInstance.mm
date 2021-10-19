@@ -16,9 +16,7 @@
 HostObjectClassInstance::HostObjectClassInstance(NSObject *instance)
 : instance_(instance) {}
 
-HostObjectClassInstance::~HostObjectClassInstance() {
-  NSObject *instance = instance_;
-}
+HostObjectClassInstance::~HostObjectClassInstance() {}
 
 std::vector<jsi::PropNameID> HostObjectClassInstance::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
@@ -97,6 +95,4 @@ jsi::Value HostObjectClassInstance::get(jsi::Runtime& runtime, const jsi::PropNa
   
   // Next, handle things other than class methods.
   throw jsi::JSError(runtime, "HostObjectClassInstance::get: We currently only support accesses into class instance methods and class properties.");
-  
-  // return jsi::Value::undefined();
 }
