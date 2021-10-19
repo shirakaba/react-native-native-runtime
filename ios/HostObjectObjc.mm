@@ -100,6 +100,7 @@ jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
       
       // Like Xamarin, we do the more performant lookups MAIN_ONLY and SELF and before resorting to the slow catch-all lookup DEFAULT
       // @see https://github.com/xamarin/xamarin-macios/blob/3acfa092ddf0eccd274d9757aaaa15df7b86a516/runtime/mono-runtime.m.t4#L56
+      // @see https://docs.oracle.com/cd/E88353_01/html/E37843/dlsym-3c.html
       void *value = dlsym(RTLD_MAIN_ONLY, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]);
       if (!value) {
         value = dlsym(RTLD_SELF, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]);
@@ -111,14 +112,19 @@ jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
         throw jsi::JSError(runtime, [[NSString stringWithFormat:@"ReferenceError: Can't find symbol within this executable: %@", symbolName] cStringUsingEncoding:NSUTF8StringEncoding]);
       }
       
-      // id (*objc_constructInstance_fn)(Class, void*) = (id(*)(Class, void*))dlsym(RTLD_DEFAULT, "objc_constructInstance");
-      // NSString *value = *((__unsafe_unretained NSString **)dlsym(libraryHandle, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]));
-      
-      // id value = (__bridge id)dlsym(iOSPublicFrameworks, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]);
+      // dlsym() returns a pointer to the given data.
+      // e.g. if we looked up `NSString* NSStringTransformToLatin`, it would return us not the NSString* directly, but a pointer to that NSString*.
+      // Thus, we need to dereference it using this piece of witchcraft below.
+      // @see https://stackoverflow.com/questions/23742392/how-do-i-cast-void-to-nsstring-without-getting-a-runtime-error-in-objective-c
       id valueObjc = *((__unsafe_unretained id*)value);
-      NSLog(@"Got value: %@", valueObjc);
       
-      return jsi::Value::undefined();
+      // isKindOfClass checks whether valueObjc is an instance of any subclass of NSObject or NSObject itself.
+      if(![valueObjc isKindOfClass:[NSObject class]]){
+        // I don't know how to check whether an id is a selector or a protocol or whatnot, so let's just explicitly limit this to class instances.
+        throw jsi::JSError(runtime, [[NSString stringWithFormat:@"TypeError: Did find the symbol named '%@', but it's not a type we can currently handle (expected a class instance). If you want a selector or a class, don't use this lookup function; instead, directly access the value off the global `objc` object.", symbolName] cStringUsingEncoding:NSUTF8StringEncoding]);
+      }
+      
+      return jsi::Object::createFromHostObject(runtime, std::make_shared<HostObjectClassInstance>(valueObjc));
     };
     return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "lookup"), 1, lookup);
   }
