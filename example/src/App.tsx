@@ -7,6 +7,7 @@ import { StyleSheet, View, Text } from 'react-native';
 export default function App() {
   React.useEffect(() => {
     // multiply(3, 7).then(setResult);
+
     const hello: objc.NSString =
       objc.NSString.alloc()['initWithString:']('Hello');
     const helloWorld: objc.NSString =
@@ -45,11 +46,26 @@ export default function App() {
     );
 
     console.log(
-      'Transliterate Japanese Hiragana to Latin, given "しらかば":',
+      'Look up the global constant "NSStringTransformLatinToHiragana" in order to transliterate Japanese Hiragana to Latin, given "しらかば":',
       objc.marshal(
         objc.NSString.alloc()
           ['initWithString:']('しらかば')
-          ['stringByApplyingTransform:reverse:']('Latin-Hiragana', false)
+          ['stringByApplyingTransform:reverse:'](
+            (objc as any).lookup('NSStringTransformLatinToHiragana'),
+            false
+          )
+      )
+    );
+
+    console.log(
+      'Do the same, this time using the equivalent Core Foundation symbol, "kCFStringTransformToLatin":',
+      objc.marshal(
+        objc.NSString.alloc()
+          ['initWithString:']('しらかば')
+          ['stringByApplyingTransform:reverse:'](
+            (objc as any).lookup('kCFStringTransformToLatin'),
+            false
+          )
       )
     );
 
