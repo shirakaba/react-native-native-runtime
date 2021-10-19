@@ -11,7 +11,14 @@
 #import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
+#import <React/RCTBridge.h>
+#import <React/RCTBridge+Private.h>
+#import <ReactCommon/RCTTurboModule.h>
+#import <ReactCommon/CallInvoker.h>
+#import <React/RCTBridge.h>
+#import <ReactCommon/TurboModuleUtils.h>
 #import <jsi/jsi.h>
+#import <dlfcn.h>
 
 std::vector<jsi::PropNameID> HostObjectObjc::getPropertyNames(jsi::Runtime& rt) {
   std::vector<jsi::PropNameID> result;
@@ -63,6 +70,57 @@ jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
       throw jsi::JSError(runtime, "TypeError: expected to be passed a HostObjectClassInstance.");
     };
     return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "marshal"), 1, marshal);
+  }
+  
+  if (name == "lookup") {
+    auto lookup = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+      if(!arguments[0].isString()){
+        throw jsi::JSError(runtime, "TypeError: expected to be passed a string.");
+      }
+      
+      RCTBridge *bridge = [RCTBridge currentBridge];
+      auto jsCallInvoker = bridge.jsCallInvoker;
+      NSString *symbolName = convertJSIValueToObjCObject(runtime, arguments[0], jsCallInvoker);
+      
+      // @see https://stackoverflow.com/questions/6530701/is-the-function-dlopen-private-api
+      // @see https://gist.github.com/alloy/9277316
+      // @see https://stackoverflow.com/questions/10830488/where-are-the-ios-frameworks-binaries-located-in-the-filesystem
+      
+      // Here's how Xamarin looks up symbols specifically within a given framework.
+      // We might want to offer explicitly scoped lookup like this as an option in future.
+      // @see https://github.com/xamarin/xamarin-macios/blob/2972e1b715a11dd508023ea5bb71085d4dbf43ce/src/ObjCRuntime/Constants.cs#L6
+      // @see https://github.com/xamarin/xamarin-macios/blob/80c3cc0028bc61cf6efc51b6972fa472519be100/src/Constants.iOS.cs.in
+      // void *foundationLibraryHandle = dlopen([@"/System/Library/Frameworks/Foundation.framework/Foundation" fileSystemRepresentation], RTLD_LAZY);
+      // void *allLibrariesHandle = dlopen(NULL, RTLD_LAZY);
+      // char *error = dlerror();
+      // if(error){
+      //   NSString *errorString = [[NSString alloc] initWithUTF8String:error];
+      //   NSLog(@"Got dlopen error: %@", errorString);
+      // }
+      
+      // Like Xamarin, we do the more performant lookups MAIN_ONLY and SELF and before resorting to the slow catch-all lookup DEFAULT
+      // @see https://github.com/xamarin/xamarin-macios/blob/3acfa092ddf0eccd274d9757aaaa15df7b86a516/runtime/mono-runtime.m.t4#L56
+      void *value = dlsym(RTLD_MAIN_ONLY, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]);
+      if (!value) {
+        value = dlsym(RTLD_SELF, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]);
+      }
+      if (!value) {
+        value = dlsym(RTLD_DEFAULT, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]);
+      }
+      if(!value) {
+        throw jsi::JSError(runtime, [[NSString stringWithFormat:@"ReferenceError: Can't find symbol within this executable: %@", symbolName] cStringUsingEncoding:NSUTF8StringEncoding]);
+      }
+      
+      // id (*objc_constructInstance_fn)(Class, void*) = (id(*)(Class, void*))dlsym(RTLD_DEFAULT, "objc_constructInstance");
+      // NSString *value = *((__unsafe_unretained NSString **)dlsym(libraryHandle, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]));
+      
+      // id value = (__bridge id)dlsym(iOSPublicFrameworks, [symbolName cStringUsingEncoding:NSUTF8StringEncoding]);
+      id valueObjc = *((__unsafe_unretained id*)value);
+      NSLog(@"Got value: %@", valueObjc);
+      
+      return jsi::Value::undefined();
+    };
+    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "lookup"), 1, lookup);
   }
   
   // Cover all the type lookup utilities one-by-one!
