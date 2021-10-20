@@ -4,7 +4,6 @@
 #import <stdio.h>
 #import <stdlib.h>
 #import "HostObjectClassInstance.h"
-#import "gObjcConstants.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
 #import <jsi/jsi.h>
