@@ -22,6 +22,8 @@ jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string metho
   if(!method){
     throw jsi::JSError(runtime, "invokeClassInstanceMethod: class instance responded to selector, but the corresponding method was unable to be retrieved.");
   }
+  char observedReturnType[256];
+  method_getReturnType(method, observedReturnType, 256);
   
   // TODO: refactor redundant code between invokeClassInstanceMethod and invokeClassMethod
   
@@ -29,7 +31,7 @@ jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string metho
   // arguments 0 and 1 are self and _cmd respectively (effectively not of our concern)
   unsigned int reservedArgs = 2;
   unsigned int argsCount = method_getNumberOfArguments(method) - reservedArgs;
-  auto classMethod = [reservedArgs, instance, sel] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+  auto classMethod = [reservedArgs, instance, sel, observedReturnType] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
     RCTBridge *bridge = [RCTBridge currentBridge];
     auto jsCallInvoker = bridge.jsCallInvoker;
     // @see https://stackoverflow.com/questions/313400/nsinvocation-for-dummies
@@ -59,6 +61,13 @@ jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string metho
       }
     }
     [inv invoke];
+    
+    // @see https://developer.apple.com/documentation/foundation/nsmethodsignature
+    const char *voidReturnType = "v";
+    if(0 == strncmp(observedReturnType, voidReturnType, strlen(voidReturnType))){
+      return jsi::Value::undefined();
+    }
+    
     id returnValue = NULL;
     [inv getReturnValue:&returnValue];
     

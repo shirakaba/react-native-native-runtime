@@ -241,7 +241,7 @@ declare module objc {
     
         // indexOfAccessibilityElement(element: any): number;
     
-        // init(): this;
+        init(): this;
     
         // isEqual(object: any): boolean;
     
@@ -838,5 +838,116 @@ declare module objc {
         // writeToURLAtomically(url: NSURL, atomically: boolean): boolean;
 
         // writeToURLAtomicallyEncodingError(url: NSURL, useAuxiliaryFile: boolean, enc: number): boolean;
+    }
+
+    declare class AVSpeechUtterance extends NSObject /* implements NSCopying, NSSecureCoding */ {
+
+        static alloc(): AVSpeechUtterance; // inherited from NSObject
+    
+        static new(): AVSpeechUtterance; // inherited from NSObject
+    
+        // static speechUtteranceWithAttributedString(string: NSAttributedString): AVSpeechUtterance;
+    
+        // static speechUtteranceWithString(string: string): AVSpeechUtterance;
+    
+        // readonly attributedSpeechString: NSAttributedString;
+    
+        // pitchMultiplier: number;
+    
+        // postUtteranceDelay: number;
+    
+        // preUtteranceDelay: number;
+    
+        // prefersAssistiveTechnologySettings: boolean;
+    
+        // rate: number;
+    
+        // readonly speechString: string;
+    
+        voice: AVSpeechSynthesisVoice;
+    
+        // volume: number;
+    
+        // static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+    
+        // constructor(o: { attributedString: NSAttributedString; });
+    
+        // constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+    
+        // constructor(o: { string: string; });
+    
+        // copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
+    
+        // encodeWithCoder(coder: NSCoder): void;
+    
+        // initWithAttributedString(string: NSAttributedString): this;
+    
+        // initWithCoder(coder: NSCoder): this;
+    
+        ['initWithString:'](string: string): this;
+    }
+
+    declare class AVSpeechSynthesisVoice extends NSObject /* implements NSSecureCoding */ {
+
+        static alloc(): AVSpeechSynthesisVoice; // inherited from NSObject
+    
+        // static currentLanguageCode(): string;
+    
+        // static new(): AVSpeechSynthesisVoice; // inherited from NSObject
+    
+        // static speechVoices(): NSArray<AVSpeechSynthesisVoice>;
+    
+        // static voiceWithIdentifier(identifier: string): AVSpeechSynthesisVoice;
+    
+        static ['voiceWithLanguage:'](languageCode: string): AVSpeechSynthesisVoice;
+    
+        // readonly audioFileSettings: NSDictionary<string, any>;
+    
+        // readonly gender: AVSpeechSynthesisVoiceGender;
+    
+        // readonly identifier: string;
+    
+        // readonly language: string;
+    
+        // readonly name: string;
+    
+        // readonly quality: AVSpeechSynthesisVoiceQuality;
+    
+        // static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+    
+        // constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+    
+        // encodeWithCoder(coder: NSCoder): void;
+    
+        // initWithCoder(coder: NSCoder): this;
+    }
+
+    declare class AVSpeechSynthesizer extends NSObject {
+
+        static alloc(): AVSpeechSynthesizer; // inherited from NSObject
+    
+        static new(): AVSpeechSynthesizer; // inherited from NSObject
+    
+        // delegate: AVSpeechSynthesizerDelegate;
+    
+        // mixToTelephonyUplink: boolean;
+    
+        // outputChannels: NSArray<AVAudioSessionChannelDescription>;
+    
+        // readonly paused: boolean;
+    
+        // readonly speaking: boolean;
+    
+        // usesApplicationAudioSession: boolean;
+    
+        // continueSpeaking(): boolean;
+    
+        // pauseSpeakingAtBoundary(boundary: AVSpeechBoundary): boolean;
+    
+        ['speakUtterance:'](utterance: AVSpeechUtterance): void;
+    
+        // stopSpeakingAtBoundary(boundary: AVSpeechBoundary): boolean;
+    
+        // writeUtteranceToBufferCallback(utterance: AVSpeechUtterance, bufferCallback: (p1: AVAudioBuffer) => void): void;
     }
 }

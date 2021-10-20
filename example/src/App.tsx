@@ -77,6 +77,12 @@ export default function App() {
           ['stringByApplyingTransform:reverse:']('Latin-Hangul', false)
       )
     );
+
+    const utterance =
+      objc.AVSpeechUtterance.alloc()['initWithString:']('Hello, world!');
+    // TODO: implement arbitrary setters
+    // utterance.voice = objc.AVSpeechSynthesisVoice['voiceWithLanguage:']('en-GB');
+    objc.AVSpeechSynthesizer.alloc().init()['speakUtterance:'](utterance);
   }, []);
 
   return (
