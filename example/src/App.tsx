@@ -51,7 +51,7 @@ export default function App() {
         objc.NSString.alloc()
           ['initWithString:']('しらかば')
           ['stringByApplyingTransform:reverse:'](
-            (objc as any).lookup('NSStringTransformLatinToHiragana'),
+            (objc as any).NSStringTransformLatinToHiragana,
             false
           )
       )
@@ -63,7 +63,7 @@ export default function App() {
         objc.NSString.alloc()
           ['initWithString:']('しらかば')
           ['stringByApplyingTransform:reverse:'](
-            (objc as any).lookup('kCFStringTransformToLatin'),
+            (objc as any).kCFStringTransformToLatin,
             false
           )
       )
