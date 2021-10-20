@@ -145,11 +145,27 @@ jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& pro
     return object;
   }
   
-  SEL sel = NSSelectorFromString(nameNSString);
-  if (sel != nil) {
-    // TODO: support methods as well?
-    jsi::Object object = jsi::Object::createFromHostObject(runtime, std::make_unique<HostObjectSelector>(sel));
-    return object;
+  SEL selector = NSSelectorFromString(nameNSString);
+  if (selector != nil) {
+//    void *value = dlsym(RTLD_DEFAULT, [nameNSString cStringUsingEncoding:NSUTF8StringEncoding]);
+    
+    // @see https://github.com/opensource-apple/objc4/blob/master/test/cdtors.mm
+    // @see https://github.com/opensource-apple/objc4/search?q=dlsym
+    // id (*objc_constructInstance_fn)(Class, void*) = (id(*)(Class, void*))dlsym(RTLD_DEFAULT, [nameNSString cStringUsingEncoding:NSUTF8StringEncoding]);
+    // void * (*fn)(void *) = (typeof(fn))dlsym(RTLD_DEFAULT, [nameNSString cStringUsingEncoding:NSUTF8StringEncoding]);
+    // Not clear how to cast this to an objc type.
+    
+//    void *fn = dlsym(RTLD_DEFAULT, [nameNSString cStringUsingEncoding:NSUTF8StringEncoding]);
+//    struct { void *imp; SEL sel; } message_ref = { fn, sel };
+    
+//    id valueObjc = (__bridge __unsafe_unretained id)value;
+//    Method method = (__bridge Method)valueObjc;
+//    unsigned int argsCount = method_getNumberOfArguments(method) - 2;
+    
+    
+    throw jsi::JSError(runtime, [[NSString stringWithFormat:@"TODO"] cStringUsingEncoding:NSUTF8StringEncoding]);
+    
+    // return jsi::Object::createFromHostObject(runtime, std::make_unique<HostObjectSelector>(sel));
   }
   
   // Otherwise, it's a value. As far as I can see, we'll have to compile those into the app in advance from the {N} metadata.

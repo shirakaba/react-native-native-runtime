@@ -8,6 +8,8 @@ export default function App() {
   React.useEffect(() => {
     // multiply(3, 7).then(setResult);
 
+    const whatever = (objc as any).NSStringFromClass;
+
     const hello: objc.NSString =
       objc.NSString.alloc()['initWithString:']('Hello');
     const helloWorld: objc.NSString =
