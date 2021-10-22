@@ -203,9 +203,23 @@ utterance.voice =
 
 ... but both getters and setters are currently *very* experimental and I need some help from an Obj-C expert to get them right.
 
+## Is it complete?
+
+The Java runtime isn't even started yet, for one thing.
+
+The Obj-C runtime lets you do a lot of things already, but it is far from complete. There are some glaring things like lack of `console.log()` support and incomplete getter/setter support that are high priorities to solve, and peer review from JSI experts is also needed.
+
+## Is it production-ready?
+
+No, but you can help that by contributing!
+
+Seriously, expect errors to be thrown if you don't know what you're doing (particularly as there are no TypeScript typings yet).
+
 ## Contributing
 
 Get in touch on the `#objc-runtime` channel of the [React Native JSI Discord](https://discord.com/invite/QDMxYqXw), or [send me a message](https://twitter.com/LinguaBrowse) on Twitter!
+
+I'll start putting some issues together to indicate tasks that need help.
 
 ## License
 
