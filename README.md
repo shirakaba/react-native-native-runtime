@@ -44,6 +44,10 @@ For now, as I haven't installed the package yet, just clone the repo and play ar
 
 All Obj-C APIs are exposed through a proxy object called `objc`, which is injected into the JS context's global scope early at run time (provided you have remembered to install the Cocoapod and rebuilt your iOS app since then). Technically it occurs when React Native finds the `setBridge` method in `ios/ObjcRuntime.mm` just like for any other iOS native module and then calls the `ObjcRuntimeJsi::install()` method within.
 
+#### TypeScript typings?
+
+⚠️ First, a warning: We only have very minimal hand-written TypeScript typings at the moment. Get used to `any` type until we make a more lasting solution, most likely based on the NativeScript metadata/typings generator.
+
 #### The `objc` proxy object
 
 As mentioned, this is available in the global scope on any Apple app.
