@@ -78,11 +78,12 @@ export default function App() {
       )
     );
 
-    const utterance =
-      objc.AVSpeechUtterance.alloc()['initWithString:']('Hello, world!');
-    // TODO: implement arbitrary setters
-    utterance.voice = objc.AVSpeechSynthesisVoice['voiceWithLanguage:']('ja-JP');
-    objc.AVSpeechSynthesizer.alloc().init()['speakUtterance:'](utterance);
+    /* Uncomment this if you're happy to hear a voice speak! */
+    // const utterance =
+    //   objc.AVSpeechUtterance.alloc()['initWithString:']('Hello, world!');
+    // utterance.voice =
+    //   objc.AVSpeechSynthesisVoice['voiceWithLanguage:']('en-GB');
+    // objc.AVSpeechSynthesizer.alloc().init()['speakUtterance:'](utterance);
   }, []);
 
   return (
