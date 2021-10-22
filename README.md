@@ -3,7 +3,7 @@
 <p align="center">
     <a href="https://badge.fury.io/js/react-native-native-runtime"><img src="https://badge.fury.io/js/react-native-native-runtime.svg" alt="npm version" height="18"></a>
     <a href="https://discord.com/invite/QDMxYqXw">
-        <img src="https://img.shields.io/discord/457912077277855764?label=chat&logo=discord"/>
+        <img src="https://img.shields.io/discord/901103300735279144?label=chat&logo=discord"/>
     </a>
     <a href="https://opensource.org/licenses/mit-license.php">
         <img src="https://badges.frapsoft.com/os/mit/mit.png?v=103"/>
