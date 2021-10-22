@@ -5,7 +5,6 @@ import { StyleSheet, View, Text } from 'react-native';
 
 export default function App() {
   React.useEffect(() => {
-
     const hello: objc.NSString =
       objc.NSString.alloc()['initWithString:']('Hello');
     const helloWorld: objc.NSString =
