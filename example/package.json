@@ -1,6 +1,6 @@
 {
-  "name": "react-native-objc-runtime-example",
-  "description": "Example app for react-native-objc-runtime",
+  "name": "react-native-native-runtime-example",
+  "description": "Example app for react-native-native-runtime",
   "version": "0.0.1",
   "private": true,
   "scripts": {

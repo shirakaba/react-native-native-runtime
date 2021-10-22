@@ -48,7 +48,7 @@ All Obj-C APIs are exposed through a proxy object called `objc`, which is inject
 
 #### TypeScript typings?
 
-⚠️ First, a warning: We only have very minimal hand-written TypeScript typings at the moment. Get used to `any` type until we make a more lasting solution, most likely based on the NativeScript metadata/typings generator.
+⚠️ First, a warning: We only have very minimal hand-written TypeScript typings at the moment. Get used to `any` type until we make a more lasting solution, most likely based on the NativeScript metadata/typings generator. For now, copy [example/src/objc-types.d.ts](example/src/objc-types.d.ts) to get started.
 
 #### The `objc` proxy object
 

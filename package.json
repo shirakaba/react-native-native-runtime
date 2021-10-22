@@ -1,5 +1,5 @@
 {
-  "name": "react-native-objc-runtime",
+  "name": "react-native-native-runtime",
   "version": "0.1.0",
   "description": "Access the Obj-C runtime from React Native via JSI!",
   "main": "lib/commonjs/index",
