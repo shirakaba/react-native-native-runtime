@@ -25,6 +25,8 @@ For now, we support just Objective-C (for iOS/macOS/tvOS devices, but I'll refer
 Please get in contact if these instructions don't work for you!
 
 ```sh
+# WARNING: only tested with react-native@^0.64.2. Will not work on lower versions; *may* work on newer versions.
+
 # Install the npm package
 npm install --save react-native-native-runtime
 
