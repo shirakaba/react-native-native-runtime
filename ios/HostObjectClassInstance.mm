@@ -3,6 +3,7 @@
 #import <objc/runtime.h>
 #import <stdio.h>
 #import <stdlib.h>
+#import "HostObjectClass.h"
 #import "HostObjectClassInstance.h"
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
@@ -11,6 +12,7 @@
 #import <React/RCTBridge+Private.h>
 #import <ReactCommon/RCTTurboModule.h>
 #import "HostObjectUtils.h"
+#import <AVFoundation/AVFoundation.h>
 
 HostObjectClassInstance::HostObjectClassInstance(NSObject *instance)
 : instance_(instance) {}
@@ -94,4 +96,78 @@ jsi::Value HostObjectClassInstance::get(jsi::Runtime& runtime, const jsi::PropNa
   
   // Next, handle things other than class methods.
   throw jsi::JSError(runtime, "HostObjectClassInstance::get: We currently only support accesses into class instance methods and class properties.");
+}
+
+void HostObjectClassInstance::set(jsi::Runtime& runtime, const jsi::PropNameID& propName, const jsi::Value& value) {
+  auto name = propName.utf8(runtime);
+  NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
+  
+  RCTBridge *bridge = [RCTBridge currentBridge];
+  auto jsCallInvoker = bridge.jsCallInvoker;
+  
+  id marshalled;
+  if(value.isObject()){
+    jsi::Object obj = value.asObject(runtime);
+    if(obj.isHostObject((runtime))){
+      if(HostObjectClass* hostObjectClass = dynamic_cast<HostObjectClass*>(obj.asHostObject(runtime).get())){
+        marshalled = hostObjectClass->clazz_;
+      } else if(HostObjectClassInstance* hostObjectClassInstance = dynamic_cast<HostObjectClassInstance*>(obj.asHostObject(runtime).get())){
+        marshalled = hostObjectClassInstance->instance_;
+      } else {
+        throw jsi::JSError(runtime, "invokeClassInstanceMethod: Unwrapping HostObjects other than ClassHostObject not yet supported!");
+      }
+    } else {
+      marshalled = convertJSIValueToObjCObject(runtime, value, jsCallInvoker);
+    }
+  } else {
+    marshalled = convertJSIValueToObjCObject(runtime, value, jsCallInvoker);
+  }
+  
+  // @see https://stackoverflow.com/questions/29641396/how-to-get-and-set-a-property-value-with-runtime-in-objective-c/29642341
+  objc_property_t property = class_getProperty([instance_ class], [nameNSString cStringUsingEncoding:NSASCIIStringEncoding]);
+  
+//  NSString *setterName;
+//  const char* setterNameC = property_copyAttributeValue(property, "S");
+//  if(setterNameC == NULL){
+//    setterName = [NSString stringWithFormat: @"set%@%@:", [nameNSString substringToIndex: 1].uppercaseString, [nameNSString substringFromIndex: 1]];
+//  } else {
+//    setterName = [NSString stringWithCString:setterNameC encoding:NSASCIIStringEncoding];
+//  }
+//  SEL setterSel = sel_registerName(setterName.UTF8String);
+  
+  // Some properties are synthesised and thus have a backing variable, and that's what you have to call the method upon.
+  // I guess if this property returns NULL, then we don't look for a backing variable at all and just use the name as-is?
+  // @see https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html#//apple_ref/doc/uid/TP40008048-CH101
+  // The string starts with a T followed by the @encode type and a comma, and finishes with a V followed by the name of the backing instance variable. Between these, the attributes are specified by the following descriptors, separated by commas:
+  // property_getAttributes(property) returned the following:
+  // T@"AVSpeechSynthesisVoice",&,N,V_voice
+  unsigned int outCount;
+  objc_property_attribute_t *attributes = property_copyAttributeList(property, &outCount);
+  objc_property_attribute_t finalAttribute = attributes[outCount - 1];
+  const char *finalAttributeName = finalAttribute.name;
+  NSLog(@"finalAttribute.name: '%s'; finalAttribute.value: '%s'", finalAttribute.name, finalAttribute.value);
+  
+  // Properties are typically backed by an instance variable with a leading underscore, so creating a property called firstName would have a backing instance variable with the name _firstName. You should only access that private instance variable if you override the getter/setter or if you need to setup the ivar in the class init method.
+  Ivar ivar = class_getInstanceVariable([instance_ class], finalAttributeName);
+  object_setIvar(instance_, ivar, marshalled);
+  
+  // Problem: I guess this means we skip past the setter and go straight to the backing variable, meaning
+  // we side-step any (necessary) side-effects. We may need to keep looking for a better way of doing this.
+  
+  
+////  SEL sel = NSSelectorFromString(nameNSString);
+//  Method method = class_getInstanceMethod([instance_ class], setterSel);
+//  NSLog(@"Checking whether the class %@ have an instance method for the setter %@...", [instance_ class], nameNSString);
+//  // [instance_ performSelector:sel]
+//
+//  if (![instance_ respondsToSelector:setterSel]) {
+//    throw jsi::JSError(runtime, [[NSString stringWithFormat:@"TypeError: No such setter: %@", nameNSString] cStringUsingEncoding:NSUTF8StringEncoding]);
+//  }
+//
+//  invokeClassInstanceMethod(runtime, [setterName cStringUsingEncoding:NSUTF8StringEncoding], setterSel, instance_);
+//
+//  // [instance_ perf]
+//
+//  // TODO: implement the setter itself
+//  // ((void (*) (id,SEL,id)) objc_msgSend) (instance_,sel,marshalled);
 }

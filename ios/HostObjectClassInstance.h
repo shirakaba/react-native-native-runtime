@@ -14,6 +14,7 @@ public:
 
 public:
   jsi::Value get(jsi::Runtime&, const jsi::PropNameID& name) override;
+  void set(jsi::Runtime& runtime, const jsi::PropNameID& propName, const jsi::Value& value) override;
   std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime& rt) override;
 
   NSObject* instance_;

@@ -48,7 +48,6 @@ jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string metho
           } else if(HostObjectClassInstance* hostObjectClassInstance = dynamic_cast<HostObjectClassInstance*>(obj.asHostObject(runtime).get())){
             [inv setArgument:&hostObjectClassInstance->instance_ atIndex: reservedArgs + i];
           } else {
-            // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
             throw jsi::JSError(runtime, "invokeClassInstanceMethod: Unwrapping HostObjects other than ClassHostObject not yet supported!");
           }
         } else {
@@ -114,7 +113,6 @@ jsi::Function invokeClassMethod(jsi::Runtime &runtime, std::string methodName, S
           } else if(HostObjectClassInstance* hostObjectClassInstance = dynamic_cast<HostObjectClassInstance*>(obj.asHostObject(runtime).get())){
             [inv setArgument:&hostObjectClassInstance->instance_ atIndex: reservedArgs + i];
           } else {
-            // TODO: detect whether the JSI Value is a HostObject, and thus whether we need to unwrap it and retrieve the native pointer it harbours.
             throw jsi::JSError(runtime, "invokeClassMethod: Unwrapping HostObjects other than HostObjectClass not yet supported!");
           }
         } else {
