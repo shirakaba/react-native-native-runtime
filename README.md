@@ -1,51 +1,205 @@
-# react-native-objc-runtime
+# react-native-native-runtime
 
-Access the Obj-C runtime from React Native via JSI!
+<p align="center">
+    <a href="https://badge.fury.io/js/react-native-native-runtime"><img src="https://badge.fury.io/js/react-native-native-runtime.svg" alt="npm version" height="18"></a>
+    <a href="https://discord.com/invite/QDMxYqXw">
+        <img src="https://img.shields.io/discord/457912077277855764?label=chat&logo=discord"/>
+    </a>
+    <a href="https://opensource.org/licenses/mit-license.php">
+        <img src="https://badges.frapsoft.com/os/mit/mit.png?v=103"/>
+    </a>
+    <!-- <a href="http://makeapullrequest.com">
+        <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat"/>
+    </a> -->
+    <a href="https://twitter.com/intent/follow?screen_name=LinguaBrowse">
+        <img src="https://img.shields.io/twitter/follow/LinguaBrowse.svg?style=social&logo=twitter"/>
+    </a>
+</p>
+
+Access the native APIs directly from the React Native JS context!
+
+For now, we support just Objective-C (for iOS/macOS/tvOS devices, but I'll refer to iOS for brevity). Adding support for Java (for Android devices) is on my wishlist for the future.
 
 ## Installation
 
+I haven't yet published the package, but the installation process will look something like this:
+
 ```sh
-npm install react-native-objc-runtime
+# Install the npm package ⛔️ ONCE I HAVE PUBLISHED IT (I haven't yet)! ⛔️
+npm install --save react-native-native-runtime
+
+# Install the Cocoapod
+cd ios && pod install && cd ..
 ```
 
 ## Usage
 
-### Accessing the Obj-C runtime
+For now, as I haven't installed the package yet, just clone the repo and play around with [example/src/App.tsx](example/src/App.tsx).
 
-```js
-import { multiply } from "react-native-objc-runtime";
+### The Java runtime
 
-// ...
+🚧 I haven't yet started building this, and it's further away from my expertise (I'm more of an iOS developer). Get in contact if you'd like to get involved!
 
-const result = await multiply(3, 7);
+### The Obj-C runtime
+
+All Obj-C APIs are exposed through a proxy object called `objc`, which is injected into the JS context's global scope early at run time (provided you have remembered to install the Cocoapod and rebuilt your iOS app since then). Technically it occurs when React Native finds the `setBridge` method in `ios/ObjcRuntime.mm` just like for any other iOS native module and then calls the `ObjcRuntimeJsi::install()` method within.
+
+#### The `objc` proxy object
+
+As mentioned, this is available in the global scope on any Apple app.
+
+Generally, you'll use the `objc` proxy object to look up some native data type. If a match is found for the native data type, we wrap it in a C++ HostObject class instance that is shared across to the JS context.
+
+```ts
+// Class lookup:
+// Returns a JS HostObject wrapping a native class.
+// This works via the Obj-C runtime helper NSClassFromString, so it has O(1) complexity.
+objc.NSString;
+
+// Protocol lookup:
+// Returns a JS HostObject wrapping a native Protocol (if a class with the same name wasn't found first).
+// This works via the Obj-C runtime helper NSProtocolFromString, so it has O(1) complexity.
+objc.NSSecureCoding;
+
+// Constant/variable lookup:
+// Looks up the `NSStringTransformLatinToHiragana` variable from the executable (if neither a class
+// nor a protocol with the same name was found first).
+// This works via dlsym, so I believe it has O(N) complexity, but probably isn't too slow anyway.
+objc.NSStringTransformLatinToHiragana;
+
+// Selector lookup:
+// Returns a JS HostObject wrapping a native Selector.
+// This works via the Obj-C runtime helper NSSelectorFromString, so it has O(1) complexity.
+// I can't think of a good example for this, but it's possible.
+objc.getSelector("NoGoodExample:soWhoKnows:");
+
+// Will return an array of all Obj-C classes and all convenience methods, but that's all.
+// Does not, for example, list out all constants/variables/protocols available. Those have to be
+// looked up individually.
+Object.keys(objc);
+
+// Will return the string:
+// [object HostObjectObjc]
+objc.toString();
+
+// Will cause an infinite loop and crash! Need some advice from JSI experts on this.
+// It involves the following getters being called in sequence:
+// $$typeof -> Symbol.toStringTag -> toJSON -> Symbol.toStringTag -> 
+//   Symbol.toStringTag -> Symbol.toStringTag -> Symbol.toStringTag -> toString
+console.log(objc);
 ```
 
-### Making constants available to the Obj-C runtime
+#### Host Objects
 
-These steps have already been taken in this example project, so just serve as documentation about what I did to set up this proof-of-concept (and what you'd have to do in your own projects if consuming this as a library).
+Again, this is a C++ HostObject class instance that is shared across to the JS context. Don't ask me how the memory-management works! That's one for a JSI expert (and I'd love some code review on my approach).
 
-```sh
-# Run the NativeScript iOS metadata generator to generate a YAML file of all the Obj-C runtime metadata.
-# I have not set up the NativeScript iOS metadata generator in this repo; I actually copied the metadata
-# over from an existing standard NativeScript project to simplify this proof-of-concept. But the command
-# would look something like this:
-TNS_DEBUG_METADATA_PATH="/Users/jamie/Documents/git/react-native-objc-runtime/example/ios/ObjcRuntimeExample/DEBUG" ./build-step-metadata-generator.py
+The `objc` proxy object is one such HostObject. I've made some others:
 
-# Now run my script for extracting constants from that YAML metadata.
-# For now, we'll just map Foundation alone.
-mkdir -vp "example/ios/ObjcRuntimeExample/objc-constants"
-node scripts/generate-objc-constants.js --mode=file --input "example/ios/ObjcRuntimeExample/DEBUG-x86_64/Foundation.yaml" --output "example/ios/ObjcRuntimeExample/objc-constants/Foundation.json"
+* HostObjectClass (wraps a class)
+* HostObjectClassInstance (wraps a class instance)
+* HostObjectProtocol (wraps a protocol)
+* HostObjectSelector (wraps a selector)
 
-# Next, remember to manually add the folder `objc-constants` to the iOS target in your Xcodeproj.
-# Be sure to tick "Create folder references" when adding the folder.
+*TODO: I'll likely make these expand a common abstract class. For now, they all directly extend `facebook::jsi::HostObject`.*
 
-# Also be sure to copy across my function in AppDelegate.m: `readObjcConstants:subdirectory` and call it
-# to initialise gObjcConstants before initialising the React Native bundle.
+These may expand in future, but the former two cover a huge API surface on their own. I'll focus on documenting those, as the latter two are largely empty skeletons.
+
+
+##### HostObjectClass
+
+You can obtain a HostObjectClass by looking up a class on the `objc` proxy object:
+
+```ts
+const nSStringClass: objc.NSString = objc.NSString;
 ```
+
+You can also call class methods (AKA static methods, in other languages) on it:
+
+```ts
+const voice: objc.AVSpeechSynthesisVoice = 
+  objc.AVSpeechSynthesisVoice['voiceWithLanguage:']('en-GB');
+```
+
+We'll cover what you can do with a class instance in the next section.
+
+##### HostObjectClassInstance
+
+Once you have a class instance, you can call instance methods. The method names mirror the Obj-C selector, hence you'll be seeing a lot of colons. The JS invocation takes as many arguments as the Obj-C selector suggests (each colon indicates one param).
+
+```ts
+// Initialise an NSString
+const hello: objc.NSString =
+  objc.NSString.alloc()['initWithString:']('Hello');
+
+// Return a new NSString by concatenating it 
+const helloWorld: objc.NSString =
+  hello['stringByAppendingString:'](', world!');
+```
+
+You will have noticed that we're passing JS primitive types in as parameters. All JS primitive types are marshalled into equivalent Obj-C types:
+
+* string -> NSString
+* number -> NSNumber
+* boolean -> NSBoolean
+* Array -> NSArray
+* object -> NSDictionary
+* undefined -> nil
+* null -> nil
+
+Conversely, you can also marshal the following types from Obj-C to JS:
+
+* NSString -> string
+* NSNumber -> number
+* NSBoolean -> boolean
+* NSArray -> Array (provided each of the constituent values are marshal-friendly)
+* NSDictionary -> object (provided each of the constituent values are marshal-friendly)
+* kCFNull -> null
+* nil -> undefined
+
+Do so using the `toJS()` method on a HostObjectClassInstance:
+
+```ts
+// Marshal the NSString to a JS primitive string
+console.log(helloWorld.toJS());
+```
+
+Beyond that, you can get the keys on the class instance:
+
+```ts
+// Will return a list of all instance variables, properties, and methods, and some methods
+// like toString().
+// TODO: list out all the *inherited* instance variables, properties, and methods as well.
+Object.keys(helloWorld);
+```
+
+You can also use getters:
+
+```ts
+// Allocate a native class instance
+const utterance: objc.AVSpeechUtterance =
+  objc.AVSpeechUtterance.alloc()['initWithString:']('Hello, world!');
+
+// Get the property
+utterance.voice;
+```
+
+... and call setters:
+
+```ts
+// Allocate a native class instance
+const utterance: objc.AVSpeechUtterance =
+  objc.AVSpeechUtterance.alloc()['initWithString:']('Hello, world!');
+
+// Set properties on it
+utterance.voice =
+  objc.AVSpeechSynthesisVoice['voiceWithLanguage:']('ja-JP');
+```
+
+... but both getters and setters are currently *very* experimental and I need some help from an Obj-C expert to get them right.
 
 ## Contributing
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+Get in touch on the `#objc-runtime` channel of the [React Native JSI Discord](https://discord.com/invite/QDMxYqXw), or [send me a message](https://twitter.com/LinguaBrowse) on Twitter!
 
 ## License
 
