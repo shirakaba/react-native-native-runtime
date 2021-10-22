@@ -22,10 +22,10 @@ For now, we support just Objective-C (for iOS/macOS/tvOS devices, but I'll refer
 
 ## Installation
 
-I haven't yet published the package, but the installation process will look something like this:
+Please get in contact if these instructions don't work for you!
 
 ```sh
-# Install the npm package ⛔️ ONCE I HAVE PUBLISHED IT (I haven't yet)! ⛔️
+# Install the npm package
 npm install --save react-native-native-runtime
 
 # Install the Cocoapod
