@@ -78,6 +78,13 @@ jsi::Value HostObjectClassInstance::get(jsi::Runtime& runtime, const jsi::PropNa
     NSString *stringification = NSStringFromClass([instance_ class]);
     return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
   }
+
+  if (name == "toJS") {
+    auto toJS = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+      return convertObjCObjectToJSIValue(runtime, instance_);
+    };
+    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "toJS"), 0, toJS);
+  }
   
   // For HostObjectClassInstance, see instancesRespondToSelector, for looking up instance methods.
   SEL sel = NSSelectorFromString(nameNSString);

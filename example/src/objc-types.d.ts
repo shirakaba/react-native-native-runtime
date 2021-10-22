@@ -50,6 +50,8 @@ declare module objc {
     export class NSObject implements NSObjectProtocol {
 
         static alloc(): NSObject;
+
+        toJS(): any|undefined;
     
         // static automaticallyNotifiesObserversForKey(key: string): boolean;
     
@@ -348,27 +350,27 @@ declare module objc {
     
         
     
-        class(): typeof NSObject;
+        // class(): typeof NSObject;
     
-        conformsToProtocol(aProtocol: any /* Protocol */): boolean;
+        // conformsToProtocol(aProtocol: any /* Protocol */): boolean;
     
-        isEqual(object: any): boolean;
+        // isEqual(object: any): boolean;
     
-        isKindOfClass(aClass: typeof NSObject): boolean;
+        // isKindOfClass(aClass: typeof NSObject): boolean;
     
-        isMemberOfClass(aClass: typeof NSObject): boolean;
+        // isMemberOfClass(aClass: typeof NSObject): boolean;
     
-        performSelector(aSelector: string): any;
+        // performSelector(aSelector: string): any;
     
-        performSelectorWithObject(aSelector: string, object: any): any;
+        // performSelectorWithObject(aSelector: string, object: any): any;
     
-        performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
+        // performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
     
-        respondsToSelector(aSelector: string): boolean;
+        // respondsToSelector(aSelector: string): boolean;
     
-        retainCount(): number;
+        // retainCount(): number;
     
-        self(): NSObjectProtocol;
+        // self(): NSObjectProtocol;
     }
     declare var NSObjectProtocol: {
     

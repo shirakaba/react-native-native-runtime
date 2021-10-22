@@ -2,30 +2,27 @@
 import * as React from 'react';
 
 import { StyleSheet, View, Text } from 'react-native';
-// import { multiply } from 'react-native-objc-runtime';
 
 export default function App() {
   React.useEffect(() => {
-    // multiply(3, 7).then(setResult);
 
     const hello: objc.NSString =
       objc.NSString.alloc()['initWithString:']('Hello');
     const helloWorld: objc.NSString =
       hello['stringByAppendingString:'](', world!');
-    console.log('Concatenate two NSStrings:', objc.marshal(helloWorld));
+    console.log('Concatenate two NSStrings:', helloWorld.toJS());
 
     console.log(
       `Marshal UTF-8 text back and forth, given "白樺":`,
-      objc.marshal(objc.NSString.alloc()['initWithString:']('白樺'))
+      objc.NSString.alloc()['initWithString:']('白樺').toJS()
     );
 
     console.log(
       `Get unicode name for each character, given "🐝":`,
-      objc.marshal(
-        objc.NSString.alloc()
-          ['initWithString:']('🐝')
-          ['stringByApplyingTransform:reverse:']('Name-Any', false)
-      )
+      objc.NSString.alloc()
+        ['initWithString:']('🐝')
+        ['stringByApplyingTransform:reverse:']('Name-Any', false)
+        .toJS()
     );
 
     // Fun with Foundation String Transforms!
@@ -35,47 +32,40 @@ export default function App() {
     // @see https://twitter.com/LinguaBrowse/status/1390225265612181505?s=20
     console.log(
       'Convert Chinese script from Trad. -> Simp., given "漢字簡化爭論":',
-      objc.marshal(
-        objc.NSString.alloc()
-          ['initWithString:']('漢字簡化爭論')
-          ['stringByApplyingTransform:reverse:'](
-            'Simplified-Traditional',
-            false
-          )
-      )
+      objc.NSString.alloc()
+        ['initWithString:']('漢字簡化爭論')
+        ['stringByApplyingTransform:reverse:']('Simplified-Traditional', false)
+        .toJS()
     );
 
     console.log(
       'Look up the global variable "NSStringTransformLatinToHiragana" in order to transliterate Japanese Hiragana to Latin, given "しらかば":',
-      objc.marshal(
-        objc.NSString.alloc()
-          ['initWithString:']('しらかば')
-          ['stringByApplyingTransform:reverse:'](
-            (objc as any).NSStringTransformLatinToHiragana,
-            false
-          )
-      )
+      objc.NSString.alloc()
+        ['initWithString:']('しらかば')
+        ['stringByApplyingTransform:reverse:'](
+          (objc as any).NSStringTransformLatinToHiragana,
+          false
+        )
+        .toJS()
     );
 
     console.log(
       'Do the same, this time using the equivalent Core Foundation symbol, "kCFStringTransformToLatin":',
-      objc.marshal(
-        objc.NSString.alloc()
-          ['initWithString:']('しらかば')
-          ['stringByApplyingTransform:reverse:'](
-            (objc as any).kCFStringTransformToLatin,
-            false
-          )
-      )
+      objc.NSString.alloc()
+        ['initWithString:']('しらかば')
+        ['stringByApplyingTransform:reverse:'](
+          (objc as any).kCFStringTransformToLatin,
+          false
+        )
+        .toJS()
     );
 
     console.log(
       'Transliterate Korean Hangul to Latin, given "안녕하세요":',
-      objc.marshal(
-        objc.NSString.alloc()
-          ['initWithString:']('안녕하세요')
-          ['stringByApplyingTransform:reverse:']('Latin-Hangul', false)
-      )
+      objc.NSString.alloc()
+        ['initWithString:']('안녕하세요')
+        ['stringByApplyingTransform:reverse:']('Latin-Hangul', false)
+        .toJS()
     );
 
     /* Uncomment this if you're happy to hear a voice speak! */
