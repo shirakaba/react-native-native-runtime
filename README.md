@@ -25,7 +25,8 @@ For now, we support just Objective-C (for iOS/macOS/tvOS devices, but I'll refer
 Please get in contact if these instructions don't work for you!
 
 ```sh
-# WARNING: only tested with react-native@^0.64.2. Will not work on lower versions; *may* work on newer versions.
+# WARNING: only tested with react-native@^0.64.2.
+# Will not work on lower versions; *may* work on newer versions.
 
 # Install the npm package
 npm install --save react-native-native-runtime
@@ -59,39 +60,47 @@ Generally, you'll use the `objc` proxy object to look up some native data type. 
 ```ts
 // Class lookup:
 // Returns a JS HostObject wrapping a native class.
-// This works via the Obj-C runtime helper NSClassFromString, so it has O(1) complexity.
+// This works via the Obj-C runtime helper NSClassFromString,
+// so it has O(1) complexity.
 objc.NSString;
 
 // Protocol lookup:
-// Returns a JS HostObject wrapping a native Protocol (if a class with the same name wasn't found first).
-// This works via the Obj-C runtime helper NSProtocolFromString, so it has O(1) complexity.
+// Returns a JS HostObject wrapping a native Protocol (if a class
+// with the same name wasn't found first).
+// This works via the Obj-C runtime helper NSProtocolFromString,
+// so it has O(1) complexity.
 objc.NSSecureCoding;
 
 // Constant/variable lookup:
-// Looks up the `NSStringTransformLatinToHiragana` variable from the executable (if neither a class
+// Looks up the `NSStringTransformLatinToHiragana` variable from
+// the executable (if neither a class
 // nor a protocol with the same name was found first).
-// This works via dlsym, so I believe it has O(N) complexity, but probably isn't too slow anyway.
+// This works via dlsym, so I believe it has O(N) complexity, but
+// probably isn't too slow anyway.
 objc.NSStringTransformLatinToHiragana;
 
 // Selector lookup:
 // Returns a JS HostObject wrapping a native Selector.
-// This works via the Obj-C runtime helper NSSelectorFromString, so it has O(1) complexity.
+// This works via the Obj-C runtime helper NSSelectorFromString, so
+// it has O(1) complexity.
 // I can't think of a good example for this, but it's possible.
 objc.getSelector("NoGoodExample:soWhoKnows:");
 
-// Will return an array of all Obj-C classes and all convenience methods, but that's all.
-// Does not, for example, list out all constants/variables/protocols available. Those have to be
-// looked up individually.
+// Will return an array of all Obj-C classes and all convenience
+// methods, but that's all.
+// Does not, for example, list out all constants/variables/protocols
+// available. Those have to be looked up individually.
 Object.keys(objc);
 
 // Will return the string:
 // [object HostObjectObjc]
 objc.toString();
 
-// Will cause an infinite loop and crash! Need some advice from JSI experts on this.
+// Will cause an infinite loop and crash! Need some advice from JSI
+// experts on this.
 // It involves the following getters being called in sequence:
 // $$typeof -> Symbol.toStringTag -> toJSON -> Symbol.toStringTag -> 
-//   Symbol.toStringTag -> Symbol.toStringTag -> Symbol.toStringTag -> toString
+//   Symbol.toStringTag -> Symbol.toStringTag -> toString
 console.log(objc);
 ```
 
@@ -172,9 +181,10 @@ console.log(helloWorld.toJS());
 Beyond that, you can get the keys on the class instance:
 
 ```ts
-// Will return a list of all instance variables, properties, and methods, and some methods
-// like toString().
-// TODO: list out all the *inherited* instance variables, properties, and methods as well.
+// Will return a list of all instance variables, properties, and
+// native methods, and some added methods like toString().
+// TODO: list out all the *inherited* instance variables,
+// properties, and methods as well.
 Object.keys(helloWorld);
 ```
 
