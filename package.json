@@ -1,6 +1,6 @@
 {
   "name": "react-native-native-runtime",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Access the Obj-C runtime from React Native via JSI!",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
