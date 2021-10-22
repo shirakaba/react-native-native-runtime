@@ -57,7 +57,7 @@ As mentioned, this is available in the global scope on any Apple app.
 
 Generally, you'll use the `objc` proxy object to look up some native data type. If a match is found for the native data type, we wrap it in a C++ HostObject class instance that is shared across to the JS context.
 
-```ts
+```typescript
 // Class lookup:
 // Returns a JS HostObject wrapping a native class.
 // This works via the Obj-C runtime helper NSClassFromString,
@@ -124,13 +124,13 @@ These may expand in future, but the former two cover a huge API surface on their
 
 You can obtain a HostObjectClass by looking up a class on the `objc` proxy object:
 
-```ts
+```typescript
 const nSStringClass: objc.NSString = objc.NSString;
 ```
 
 You can also call class methods (AKA static methods, in other languages) on it:
 
-```ts
+```typescript
 const voice: objc.AVSpeechSynthesisVoice = 
   objc.AVSpeechSynthesisVoice['voiceWithLanguage:']('en-GB');
 ```
@@ -141,7 +141,7 @@ We'll cover what you can do with a class instance in the next section.
 
 Once you have a class instance, you can call instance methods. The method names mirror the Obj-C selector, hence you'll be seeing a lot of colons. The JS invocation takes as many arguments as the Obj-C selector suggests (each colon indicates one param).
 
-```ts
+```typescript
 // Initialise an NSString
 const hello: objc.NSString =
   objc.NSString.alloc()['initWithString:']('Hello');
@@ -173,14 +173,14 @@ Conversely, you can also marshal the following types from Obj-C to JS:
 
 Do so using the `toJS()` method on a HostObjectClassInstance:
 
-```ts
+```typescript
 // Marshal the NSString to a JS primitive string
 console.log(helloWorld.toJS());
 ```
 
 Beyond that, you can get the keys on the class instance:
 
-```ts
+```typescript
 // Will return a list of all instance variables, properties, and
 // native methods, and some added methods like toString().
 // TODO: list out all the *inherited* instance variables,
@@ -190,7 +190,7 @@ Object.keys(helloWorld);
 
 You can also use getters:
 
-```ts
+```typescript
 // Allocate a native class instance
 const utterance: objc.AVSpeechUtterance =
   objc.AVSpeechUtterance.alloc()['initWithString:']('Hello, world!');
@@ -201,7 +201,7 @@ utterance.voice;
 
 ... and call setters:
 
-```ts
+```typescript
 // Allocate a native class instance
 const utterance: objc.AVSpeechUtterance =
   objc.AVSpeechUtterance.alloc()['initWithString:']('Hello, world!');
