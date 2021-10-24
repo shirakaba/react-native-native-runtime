@@ -72,9 +72,11 @@ objc.NSString;
 objc.NSSecureCoding;
 
 // Constant/variable lookup:
-// Looks up the `NSStringTransformLatinToHiragana` variable from
-// the executable (if neither a class
-// nor a protocol with the same name was found first).
+// Returns a JS HostObject wrapping any native global symbol (the
+// most common ones being constants and variables).
+// This works by looking up the symbol from the executable (a
+// fallback undertaken when neither NSClassFromString nor
+// NSProtocolFromString return a match for the given string).
 // This works via dlsym, so I believe it has O(N) complexity, but
 // probably isn't too slow anyway.
 objc.NSStringTransformLatinToHiragana;
@@ -230,6 +232,18 @@ Seriously, expect errors to be thrown if you don't know what you're doing (parti
 Get in touch on the `#objc-runtime` channel of the [React Native JSI Discord](https://discord.com/invite/QDMxYqXw), or [send me a message](https://twitter.com/LinguaBrowse) on Twitter!
 
 I'll start putting some issues together to indicate tasks that need help.
+
+## Acknowledgements
+
+JSI is an API that is not yet publicly documented, so I've stood on the shoulders of a few giants to get here.
+
+I couldn't have done this without [Marc Rousavy](https://github.com/mrousavy)'s [react-native-vision-camera](https://github.com/mrousavy/react-native-vision-camera) project to refer to (I even make direct use of his JSIUtils helper methods in this codebase). He has done an exceptional amount of work digging into JSI by asking around in GitHub issues and other channels, paving the way for the rest of us.
+
+Thanks also to [Oscar Franco](https://github.com/ospfranco) for his JSI guides (e.g. [this one](https://ospfranco.com/post/2021/02/24/how-to-create-a-javascript-jsi-module/)) and [starter template](https://github.com/ospfranco/react-native-jsi-template).
+
+I also got a lot of mileage out of Ammar Ahmed's [JSI guide](https://blog.notesnook.com/getting-started-react-native-jsi/), too – well worth a read.
+
+Thank you to [Takuya Matsuyama](https://github.com/craftzdog) too, for his very minimal [react-native-quick-base64](https://github.com/craftzdog/react-native-quick-base64) JSI module, and for being one of the first community members to jump into the ring to wrestle with JSI.
 
 ## License
 
