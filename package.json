@@ -1,7 +1,7 @@
 {
   "name": "react-native-native-runtime",
   "version": "0.2.0",
-  "description": "Access the Obj-C runtime from React Native via JSI!",
+  "description": "Access the Obj-C or Java runtime from React Native via JSI!",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/index.d.ts",
@@ -12,8 +12,6 @@
     "lib",
     "android",
     "ios",
-    "cpp",
-    "scripts/generate-objc-constants.js",
     "react-native-objc-runtime.podspec",
     "!lib/typescript/example",
     "!android/build",
@@ -37,13 +35,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/shirakaba/react-native-objc-runtime",
+  "repository": "https://github.com/shirakaba/react-native-native-runtime",
   "author": "Jamie Birch <14055146+shirakaba@users.noreply.github.com> (https://github.com/shirakaba)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/shirakaba/react-native-objc-runtime/issues"
+    "url": "https://github.com/shirakaba/react-native-native-runtime/issues"
   },
-  "homepage": "https://github.com/shirakaba/react-native-objc-runtime#readme",
+  "homepage": "https://github.com/shirakaba/react-native-native-runtime#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
