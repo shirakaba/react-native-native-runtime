@@ -22,7 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-===== react-native-vision-camera (used in cpp/JSIUtils.mm and cpp/JSIUtils.h; forked from react-native) ===== 
+===== react-native-vision-camera (forked from react-native) ===== 
 
 Copyright 2021 Marc Rousavy
 
