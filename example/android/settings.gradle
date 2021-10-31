@@ -1,6 +1,6 @@
-rootProject.name = 'ObjcRuntimeExample'
+rootProject.name = 'JavaRuntimeExample'
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
 
-include ':reactnativeobjcruntime'
-project(':reactnativeobjcruntime').projectDir = new File(rootProject.projectDir, '../../android')
+include ':reactnativejavaruntime'
+project(':reactnativejavaruntime').projectDir = new File(rootProject.projectDir, '../../android')

@@ -1,4 +1,4 @@
-package com.example.reactnativeobjcruntime;
+package com.example.reactnativejavaruntime;
 
 import com.facebook.react.ReactActivity;
 
@@ -10,6 +10,6 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "ObjcRuntimeExample";
+    return "JavaRuntimeExample";
   }
 }

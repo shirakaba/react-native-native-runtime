@@ -1,4 +1,4 @@
-package com.reactnativeobjcruntime;
+package com.reactnativejavaruntime;
 
 import androidx.annotation.NonNull;
 
@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ObjcRuntimePackage implements ReactPackage {
+public class JavaRuntimePackage implements ReactPackage {
     @NonNull
     @Override
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
-        modules.add(new ObjcRuntimeModule(reactContext));
+        modules.add(new JavaRuntimeModule(reactContext));
         return modules;
     }
 

@@ -1,4 +1,4 @@
-package com.reactnativeobjcruntime;
+package com.reactnativejavaruntime;
 
 import androidx.annotation.NonNull;
 
@@ -8,11 +8,11 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.module.annotations.ReactModule;
 
-@ReactModule(name = ObjcRuntimeModule.NAME)
-public class ObjcRuntimeModule extends ReactContextBaseJavaModule {
-    public static final String NAME = "ObjcRuntime";
+@ReactModule(name = JavaRuntimeModule.NAME)
+public class JavaRuntimeModule extends ReactContextBaseJavaModule {
+    public static final String NAME = "JavaRuntime";
 
-    public ObjcRuntimeModule(ReactApplicationContext reactContext) {
+    public JavaRuntimeModule(ReactApplicationContext reactContext) {
         super(reactContext);
     }
 
