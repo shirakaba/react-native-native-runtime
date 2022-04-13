@@ -165,11 +165,13 @@ function getImportForModule(Module) {
 function getImplementationForItem(Item) {
   const { Name, Type } = Item;
 
-  let implementation = `
+  // eslint-disable-next-line no-unused-vars
+  const notImplemented = `
 if (name == "${Name}") {
   throw jsi::JSError(runtime, [[NSString stringWithFormat:@"NotImplementedError: Not implemented: %@", nameNSString] cStringUsingEncoding:NSUTF8StringEncoding]);
 }
 `.slice(1, -1);
+  let implementation = `// TODO: ${Name} (${Type})`;
   switch (Type) {
     case 'EnumConstant':
       implementation = `
@@ -221,11 +223,9 @@ if (name == "${key}") {
   }).join('\n');
 
   return `
-// Swift-style enum
 if (name == "${Name}") {
   return convertNSDictionaryToJSIObject(runtime, @{ ${dicContents} });
 }
-// Objc-style enum
 ${fullNames}
 `.slice(1, -1);
 }
