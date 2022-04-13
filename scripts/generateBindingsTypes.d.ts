@@ -76,15 +76,19 @@ export interface MetadataItemVar extends MetadataItem<'Var'> {
 }
 
 export interface MetadataItemMethod extends MetadataItem<'Method'> {
-  /** I don't have any use for this yet, so won't work out the typings. */
-  Signature: unknown;
+  Signature: Signature[];
 }
 
 export interface MetadataItemFunction extends MetadataItem<'Function'> {
-  Signature: MetadataItemFunctionSignatureMember[];
+  Signature: Signature[];
 }
 
-export type MetadataItemFunctionSignatureMember =
+export interface MetadataItemVar extends MetadataItem<'Var'> {
+  /** Usually an NSString, Double, or Enum. */
+  Signature: Signature;
+}
+
+export type Signature =
   | {
       Type: 'Interface';
       /** @example 'NSArray' */
@@ -144,7 +148,13 @@ export type MetadataItemFunctionSignatureMember =
       Type: 'Ulong';
     }
   | {
+      Type: 'Double';
+    }
+  | {
       Type: 'Long';
+    }
+  | {
+      Type: 'InstanceType';
     }
   | {
       Type: 'Enum';
@@ -155,13 +165,17 @@ export type MetadataItemFunctionSignatureMember =
       Type: 'TypeArgument';
       /** @example 'ObjectType' */
       Name: string;
-      UnderlyingType: {
-        Type: MetadataItemFunctionSignatureMember;
-      };
+      UnderlyingType: Signature;
+    }
+  | {
+      /** @example 'IncompleteArray' */
+      Type: string;
+      ArrayType: Signature;
+      Size: number;
     }
   | {
       Type: 'FunctionPointer';
-      Signature: MetadataItemFunctionSignatureMember[];
+      Signature: Signature[];
     }
   | {
       Type: 'Class';
