@@ -4,7 +4,7 @@ export interface ObjcMetadata {
 }
 
 export interface MetadataModule {
-  Fullname: string;
+  FullName: string;
   IsPartOfFramework: boolean;
   IsSystemModule: boolean;
   Libraries: MetadataModuleLibrary[];

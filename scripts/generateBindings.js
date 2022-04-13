@@ -156,7 +156,7 @@ function getImportForModule(Module) {
   //
   // @see /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/Foundation.framework/Headers/Foundation.h
   // @see /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap
-  return `#import <${Module.Fullname}/${Module.Fullname}.h>`;
+  return `#import <${Module.FullName}/${Module.FullName}.h>`;
 }
 
 /**
@@ -166,19 +166,24 @@ function getImplementationForItem(Item) {
   const { Name, Type } = Item;
 
   let implementation = `
+if (name == "${Name}") {
   throw jsi::JSError(runtime, [[NSString stringWithFormat:@"NotImplementedError: Not implemented: %@", nameNSString] cStringUsingEncoding:NSUTF8StringEncoding]);
+}
 `.slice(1, -1);
   switch (Type) {
     case 'EnumConstant':
-      implementation = getImplementationForItemEnumConstant(Item);
+      implementation = `
+if (name == "${Name}") {
+${getImplementationForItemEnumConstant(Item)}
+}
+`.slice(1, -1);
+      break;
+    case 'Enum':
+      implementation = getImplementationForItemEnum(Item);
       break;
   }
 
-  return `
-if (name == "${Name}") {
-${implementation}
-}
-`.slice(1, -1);
+  return implementation;
 }
 
 /**
@@ -188,6 +193,37 @@ function getImplementationForItemEnumConstant(Item) {
   const { Name } = Item;
   return `
   return convertObjCObjectToJSIValue(runtime, ${Name});
+`.slice(1, -1);
+}
+
+/**
+ * @param {import('./generateBindingsTypes').MetadataItemEnum} Item
+ */
+function getImplementationForItemEnum(Item) {
+  const { Name, FullNameFields, SwiftNameFields } = Item;
+
+  const dicContents = SwiftNameFields.map((field, i) => {
+    const key = Object.keys(field)[0];
+    const value = Object.keys(FullNameFields[i])[0];
+    return `@"${key}": ${value}`;
+  }).join(', ');
+
+  const fullNames = FullNameFields.map((field) => {
+    const key = Object.keys(field)[0];
+    return `
+if (name == "${key}") {
+  return convertObjCObjectToJSIValue(runtime, ${key});
+}
+`.slice(1, -1);
+  }).join('\n');
+
+  return `
+// Swift-style enum
+if (name == "${Name}") {
+  return convertNSDictionaryToJSIObject(runtime, @{ ${dicContents} });
+}
+// Objc-style enum
+${fullNames}
 `.slice(1, -1);
 }
 
