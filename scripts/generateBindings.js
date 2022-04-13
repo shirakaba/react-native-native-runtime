@@ -228,7 +228,7 @@ function getImplementationForItemEnum(Item) {
     const key = Object.keys(field)[0];
     const value = Object.keys(FullNameFields[i])[0];
     return `@"${key}": ${value}`;
-  }).join(', ');
+  }).join(',\n      ');
 
   const fullNames = FullNameFields.map((field) => {
     const key = Object.keys(field)[0];
@@ -241,7 +241,12 @@ if (name == "${key}") {
 
   return `
 if (name == "${Name}") {
-  return convertNSDictionaryToJSIObject(runtime, @{ ${dicContents} });
+  return convertNSDictionaryToJSIObject(
+    runtime,
+    @{
+      ${dicContents}
+    }
+  );
 }
 ${fullNames}
 `.slice(1, -1);
