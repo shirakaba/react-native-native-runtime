@@ -186,6 +186,9 @@ ${getImplementationForItemEnumConstant(Item)}
     case 'Function':
       implementation = getImplementationForItemFunction(Item);
       break;
+    case 'Var':
+      implementation = getImplementationForItemVar(Item);
+      break;
   }
 
   return implementation;
@@ -198,6 +201,20 @@ function getImplementationForItemEnumConstant(Item) {
   const { Name } = Item;
   return `
   return convertObjCObjectToJSIValue(runtime, ${Name});
+`.slice(1, -1);
+}
+
+/**
+ * @param {import('./generateBindingsTypes').MetadataItemVar} Item
+ */
+function getImplementationForItemVar(Item) {
+  const { Name } = Item;
+  // FIXME: if we ever find an example of a var that is not a primitive type,
+  // we'll need to revisit this and determine how to marshal it.
+  return `
+if (name == "${Name}") {
+  return convertObjCObjectToJSIValue(runtime, ${Name});
+}
 `.slice(1, -1);
 }
 
@@ -238,11 +255,12 @@ function getImplementationForItemFunction(Item) {
   // The first arg is the return type.
   // We'll need that later for TypeScript definitions, but not at runtime.
   const [, ...args] = Signature;
+
+  // FIXME: support returning non-primitive values like class instances.
   return `
 if (name == "${Name}") {
   auto func = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
     id result = ${Name}(${args.map((arg, i) => `arguments[${i}]`).join(', ')});
-    // FIXME: support non-primitive values like class instances.
     return convertObjCObjectToJSIValue(runtime, result);
   };
   return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "${Name}"), ${

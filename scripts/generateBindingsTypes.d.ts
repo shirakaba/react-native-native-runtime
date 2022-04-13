@@ -234,7 +234,7 @@ export type MetadataItemType =
   | 'Var'
   | 'Method'
   | 'Struct'
-  | 'Interface'
+  | 'Interface' // See: declare class NSMapTable<KeyType, ObjectType> extends NSObject implements NSCopying, NSFastEnumeration, NSSecureCoding {
   | 'BridgedInterface' // See CoreFoundation
   | 'Function';
 export interface MetadataItemModule {
