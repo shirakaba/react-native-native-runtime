@@ -181,6 +181,9 @@ ${getImplementationForItemEnumConstant(Item)}
     case 'Enum':
       implementation = getImplementationForItemEnum(Item);
       break;
+    case 'Function':
+      implementation = getImplementationForItemFunction(Item);
+      break;
   }
 
   return implementation;
@@ -224,6 +227,28 @@ if (name == "${Name}") {
 }
 // Objc-style enum
 ${fullNames}
+`.slice(1, -1);
+}
+
+/**
+ * @param {import('./generateBindingsTypes').MetadataItemFunction} Item
+ */
+function getImplementationForItemFunction(Item) {
+  const { Name, Signature } = Item;
+  // The first arg is the return type.
+  // We'll need that later for TypeScript definitions, but not at runtime.
+  const [, ...args] = Signature;
+  return `
+if (name == "${Name}") {
+  auto func = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
+    id result = ${Name}(${args.map((arg, i) => `arguments[${i}]`).join(', ')});
+    // FIXME: support non-primitive values like class instances.
+    return convertObjCObjectToJSIValue(runtime, result);
+  };
+  return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "${Name}"), ${
+    args.length
+  }, func);
+}
 `.slice(1, -1);
 }
 

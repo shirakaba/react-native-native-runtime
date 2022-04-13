@@ -81,11 +81,91 @@ export interface MetadataItemMethod extends MetadataItem<'Method'> {
 }
 
 export interface MetadataItemFunction extends MetadataItem<'Function'> {
-  /**
-   * I don't have any use for this yet, so won't work out the typings.
-   */
-  Signature: unknown;
+  Signature: MetadataItemFunctionSignatureMember[];
 }
+
+export type MetadataItemFunctionSignatureMember =
+  | {
+      Type: 'Interface';
+      /** @example 'NSArray' */
+      Name: string;
+      WithProtocols: string[];
+    }
+  | {
+      Type: 'Id';
+      /** @example ['NSDecimalNumberBehaviors'] */
+      WithProtocols: string[];
+    }
+  | {
+      Type: 'Pointer';
+      PointerType: {
+        /**
+         * @example 'Void'
+         * @example 'Struct'
+         * @example 'Ulong'
+         * */
+        Type: string;
+        /** @example 'Foundation.NSDecimal' */
+        Module?: string;
+        /** @example 'NSDecimal' */
+        Name?: string;
+      };
+    }
+  | {
+      Type: 'Bool';
+    }
+  | {
+      Type: 'CString';
+    }
+  | {
+      Type: 'BridgedInterface';
+      /** @example 'id' */
+      Name: string;
+      /** @example 'id' */
+      BridgedTo: string;
+    }
+  | {
+      Type: 'Struct';
+      /**
+       * @example 'Foundation.NSHashTable'
+       * @example 'Foundation.NSMapTable'
+       * */
+      Module: string;
+      /**
+       * @example 'NSHashTableCallBacks'
+       * @example 'NSMapTableKeyCallBacks'
+       * */
+      Name: string;
+    }
+  | {
+      Type: 'Selector';
+    }
+  | {
+      Type: 'Ulong';
+    }
+  | {
+      Type: 'Long';
+    }
+  | {
+      Type: 'Enum';
+      /** @example 'NSCalculationError' */
+      Name: string;
+    }
+  | {
+      Type: 'TypeArgument';
+      /** @example 'ObjectType' */
+      Name: string;
+      UnderlyingType: {
+        Type: MetadataItemFunctionSignatureMember;
+      };
+    }
+  | {
+      Type: 'FunctionPointer';
+      Signature: MetadataItemFunctionSignatureMember[];
+    }
+  | {
+      Type: 'Class';
+    };
 
 /**
  * @example NSDecimal
