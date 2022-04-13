@@ -261,16 +261,23 @@ function getImplementationForItemFunction(Item) {
   // We'll need that later for TypeScript definitions, but not at runtime.
   const [, ...args] = Signature;
 
+  const result =
+    args.length === 0
+      ? `id result = ${Name}();`
+      : `id result = ${Name}(
+      ${args
+        .map((arg, i) => `convertJSIValueToObjCObject(arguments[${i}])`)
+        .join(',\n      ')}
+    );`;
+
   // FIXME: support returning non-primitive values like class instances.
   return `
 if (name == "${Name}") {
   auto func = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
-    id result = ${Name}(${args.map((arg, i) => `arguments[${i}]`).join(', ')});
+    ${result}
     return convertObjCObjectToJSIValue(runtime, result);
   };
-  return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "${Name}"), ${
-    args.length
-  }, func);
+  return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "${Name}"), ${args.length}, func);
 }
 `.slice(1, -1);
 }
