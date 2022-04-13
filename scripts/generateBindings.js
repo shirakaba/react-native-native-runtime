@@ -261,6 +261,17 @@ function getImplementationForItemFunction(Item) {
   // We'll need that later for TypeScript definitions, but not at runtime.
   const [, ...args] = Signature;
 
+  // FIXME:
+  // `id` isn't a base class for structs like NSRange. Example:
+  //   id result = NSRangeFromString(@"{3,4}");
+  //   # ERROR: No viable conversion from 'NSRange' (aka '_NSRange') to '__strong id'
+  //
+  // We'll need to:
+  // 1 - replace `id` with the return type, Signature[0];
+  // 2 - add support for either marshalling Structs (as we do with NSDictionary) into
+  //     JSI Objects or wrapping them up as JSI HostObjects, to return it as a JSI Value.
+  //
+  // Same goes for returning all non-primitive values, like class instances.
   const result =
     args.length === 0
       ? `id result = ${Name}();`
@@ -270,7 +281,6 @@ function getImplementationForItemFunction(Item) {
         .join(',\n      ')}
     );`;
 
-  // FIXME: support returning non-primitive values like class instances.
   return `
 if (name == "${Name}") {
   auto func = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
