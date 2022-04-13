@@ -5,10 +5,10 @@ const yargs = require('yargs/yargs');
 const fs = require('fs/promises');
 const path = require('path');
 
-const logPrefix = '[generate-bindings]';
+const logPrefix = '[generateBindings]';
 
 const { input, output, mode } = yargs(process.argv.slice(2))
-  .scriptName('generate-bindings')
+  .scriptName('generateBindings')
   .usage('Usage: $0 [options]')
   .example('$0 --input [Foundation.yaml] --output [constants.json] --mode=file')
   .example('$0 --input [metadata-dir] --output [constants-dir] --mode=dir')
@@ -79,6 +79,116 @@ async function readMetadataDir(inputDirPath) {
       return [fileName, doc];
     })
   );
+}
+
+/**
+ * @param {import('./generateBindingsTypes').ObjcMetadata} doc
+ * @return {string}
+ */
+function getImplementationForLibrary(doc) {
+  const implementation = doc.Items.map((item) =>
+    getImplementationForItem(item)
+      .split('\n')
+      .map((line) => `  ${line}`)
+      .join('\n')
+  ).join('\n');
+
+  return `
+${getImportForModule(doc.Module)}
+
+// Forked from https://github.com/mrousavy/react-native-vision-camera/blob/b7bfa5ef0ad9a1c0add3d3508d7a4e0c65d2f6da/ios/Frame%20Processor/FrameHostObject.mm
+
+#import <objc/runtime.h>
+#import <stdio.h>
+#import <stdlib.h>
+#import "HostObjectObjc.h"
+#import "HostObjectClass.h"
+#import "HostObjectClassInstance.h"
+#import "HostObjectSelector.h"
+#import "HostObjectProtocol.h"
+#import "JSIUtils.h"
+#import <Foundation/Foundation.h>
+#import <React/RCTBridge.h>
+#import <React/RCTBridge+Private.h>
+#import <ReactCommon/RCTTurboModule.h>
+#import <ReactCommon/CallInvoker.h>
+#import <React/RCTBridge.h>
+#import <ReactCommon/TurboModuleUtils.h>
+#import <jsi/jsi.h>
+#import <dlfcn.h>
+
+std::vector<jsi::PropNameID> HostObjectObjc::getPropertyNames(jsi::Runtime& rt) {
+  std::vector<jsi::PropNameID> result;
+  result.push_back(jsi::PropNameID::forUtf8(rt, std::string("toString")));
+  
+  return result;
+}
+
+jsi::Value HostObjectObjc::get(jsi::Runtime& runtime, const jsi::PropNameID& propName) {
+  auto name = propName.utf8(runtime);
+  NSString* nameNSString = [NSString stringWithUTF8String:name.c_str()];
+
+  if (name == "toString") {
+    auto toString = [this] (jsi::Runtime& runtime, const jsi::Value&, const jsi::Value*, size_t) -> jsi::Value {
+      NSString* string = [NSString stringWithFormat:@"[object HostObjectObjc]"];
+      return jsi::String::createFromUtf8(runtime, string.UTF8String);
+    };
+    return jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forUtf8(runtime, "toString"), 0, toString);
+  }
+
+${implementation}
+
+  // If no matching symbol was found
+  return jsi::Value::undefined();
+}
+
+`;
+}
+
+/**
+ * @param {import('./generateBindingsTypes').MetadataModule} Module
+ * @return {string}
+ */
+function getImportForModule(Module) {
+  // I'm not great with C-style imports, but I think Apple use a naming convention for their SDK frameworks anyway.
+  // I believe the naming is entirely determined by the module.modulemap file; I'm not sure how the NativeScript
+  // metadata generator exposes that to us just yet. And don't ask me about #import vs. #include!
+  //
+  // @see /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/Foundation.framework/Headers/Foundation.h
+  // @see /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap
+  return `#import <${Module.Fullname}/${Module.Fullname}.h>`;
+}
+
+/**
+ * @param {import('./generateBindingsTypes').MetadataItem} Item
+ */
+function getImplementationForItem(Item) {
+  const { Name, Type } = Item;
+
+  let implementation = `
+  throw jsi::JSError(runtime, [[NSString stringWithFormat:@"NotImplementedError: Not implemented: %@", nameNSString] cStringUsingEncoding:NSUTF8StringEncoding]);
+`.slice(1, -1);
+  switch (Type) {
+    case 'EnumConstant':
+      implementation = getImplementationForItemEnumConstant(Item);
+      break;
+  }
+
+  return `
+if (name == "${Name}") {
+${implementation}
+}
+`.slice(1, -1);
+}
+
+/**
+ * @param {import('./generateBindingsTypes').MetadataItemEnumConstant} Item
+ */
+function getImplementationForItemEnumConstant(Item) {
+  const { Name } = Item;
+  return `
+  return convertObjCObjectToJSIValue(runtime, ${Name});
+`.slice(1, -1);
 }
 
 /**
@@ -185,10 +295,10 @@ if (mode === 'file') {
   readMetadataFile(resolvedInput).then((doc) => {
     console.log(`${logPrefix} got doc for file path: ${resolvedInput}`);
 
-    const json = buildConstantsJson(doc);
+    const libraryImplementation = getImplementationForLibrary(doc);
 
     return fs
-      .writeFile(resolvedOutput, JSON.stringify(json, null, 4), {
+      .writeFile(resolvedOutput, libraryImplementation, {
         encoding: 'utf8',
       })
       .then(() => {
