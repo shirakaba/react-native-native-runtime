@@ -277,7 +277,20 @@ function getImplementationForItemFunction(Item) {
       ? `id result = ${Name}();`
       : `id result = ${Name}(
       ${args
-        .map((arg, i) => `convertJSIValueToObjCObject(arguments[${i}])`)
+        .map((arg, i) => {
+          const marshalByValue = `convertJSIValueToObjCObject(arguments[${i}])`;
+          switch (arg.Type) {
+            case 'Interface':
+              if(
+                arg.Name === 'NSString' ||
+                arg.Name === 'NSNumber' ||
+              ){
+                return marshalByValue;
+              }
+              break;
+          }
+          return 'TODO';
+        })
         .join(',\n      ')}
     );`;
 
@@ -417,3 +430,13 @@ if (mode === 'file') {
     console.log(`${logPrefix} got all docs within ${resolvedInput}`);
   });
 }
+
+/**
+ * Given a JSI HostObject called `obj`, here's how one would make it NSRangeFromString
+ *
+ *
+ * In Obj-C:
+ *   NSRange range = NSRangeFromString(@"{1,5}");
+ * In the React Native JS context:
+ *   const range = objc.NSRangeFromString("{1,5}");
+ */

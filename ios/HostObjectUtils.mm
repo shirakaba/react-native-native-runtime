@@ -43,6 +43,9 @@ jsi::Function invokeClassInstanceMethod(jsi::Runtime &runtime, std::string metho
       if(arguments[i].isObject()){
         jsi::Object obj = arguments[i].asObject(runtime);
         if(obj.isHostObject((runtime))){
+          // if(HostObjectAnyType* hostObjectAnyType = dynamic_cast<HostObjectAnyType*>(obj.asHostObject(runtime).get())){
+          //   [inv setArgument:&hostObjectAnyType->valueOrRef_ atIndex: reservedArgs + i];
+          // }
           if(HostObjectClass* hostObjectClass = dynamic_cast<HostObjectClass*>(obj.asHostObject(runtime).get())){
             [inv setArgument:&hostObjectClass->clazz_ atIndex: reservedArgs + i];
           } else if(HostObjectClassInstance* hostObjectClassInstance = dynamic_cast<HostObjectClassInstance*>(obj.asHostObject(runtime).get())){

@@ -1,63 +1,18 @@
-//
-//  JSIUtils.mm
-//  VisionCamera
-//
-//  Forked and Adjusted by Jamie Birch on 29.09.21.
-//  Forked and Adjusted by Marc Rousavy on 02.05.21.
-//  Copyright © 2021 Jamie Birch, mrousavy, and Facebook. All rights reserved.
-//
-// Forked and adjusted from: https://github.com/mrousavy/react-native-vision-camera/blob/5dc8ded62a4cb25971006287b7c634ca0981c5a2/ios/React%20Utils/JSIUtils.mm
-//  ... which itself was forked and adjusted from: https://github.com/facebook/react-native/blob/900210cacc4abca0079e3903781bc223c80c8ac7/ReactCommon/react/nativemodule/core/platform/ios/RCTTurboModule.mm
-//  Original Copyright Notice:
-//
-//  Copyright (c) Facebook, Inc. and its affiliates.
-//
-//  This source code is licensed under the MIT license found in the
-//  LICENSE file in the root directory of this source tree.
-//
-
 #import "JSIUtils.h"
 #import <Foundation/Foundation.h>
 #import <jsi/jsi.h>
 #import <ReactCommon/CallInvoker.h>
 #import <React/RCTBridge.h>
 #import <ReactCommon/TurboModuleUtils.h>
-//#include <variant>
+#include <any>
 
 using namespace facebook;
 using namespace facebook::react;
 
-jsi::Value convertNSNumberToJSIBoolean(jsi::Runtime &runtime, NSNumber *value)
+jsi::Value convertAnyTypeToJSIValue(jsi::Runtime &runtime, std::any value)
 {
-  return jsi::Value((bool)[value boolValue]);
-}
-
-jsi::Value convertNSNumberToJSINumber(jsi::Runtime &runtime, NSNumber *value)
-{
-  return jsi::Value([value doubleValue]);
-}
-
-jsi::String convertNSStringToJSIString(jsi::Runtime &runtime, NSString *value)
-{
-  return jsi::String::createFromUtf8(runtime, [value UTF8String] ?: "");
-}
-
-jsi::Object convertNSDictionaryToJSIObject(jsi::Runtime &runtime, NSDictionary *value)
-{
-  jsi::Object result = jsi::Object(runtime);
-  for (NSString *k in value) {
-    result.setProperty(runtime, [k UTF8String], convertObjCObjectToJSIValue(runtime, value[k]));
-  }
-  return result;
-}
-
-jsi::Array convertNSArrayToJSIArray(jsi::Runtime &runtime, NSArray *value)
-{
-  jsi::Array result = jsi::Array(runtime, value.count);
-  for (size_t i = 0; i < value.count; i++) {
-    result.setValueAtIndex(runtime, i, convertObjCObjectToJSIValue(runtime, value[i]));
-  }
-  return result;
+  @encode(std::any);
+  return jsi::Value::undefined();
 }
 
 jsi::Value convertObjCObjectToJSIValue(jsi::Runtime &runtime, id value)
