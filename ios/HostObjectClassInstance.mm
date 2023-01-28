@@ -65,10 +65,10 @@ jsi::Value HostObjectClassInstance::get(jsi::Runtime& runtime, const jsi::PropNa
     // This seems to happen when you execute this JS:
     //   console.log(`objc.NSString:`, objc.NSString);
     NSString *stringification = @"[object HostObjectClassInstance]";
-    
+
     return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
   }
-  
+
   if([nameNSString isEqualToString:@"$$typeof"]){
     // This seems to happen when you execute this JS:
     //   const nsString = objc.NSString.alloc();
@@ -78,6 +78,34 @@ jsi::Value HostObjectClassInstance::get(jsi::Runtime& runtime, const jsi::PropNa
     NSString *stringification = NSStringFromClass([instance_ class]);
     return jsi::String::createFromUtf8(runtime, stringification.UTF8String);
   }
+  // NSString *stringTag = [NSString stringWithFormat: @"HostObjectClassInstance<%@*>", NSStringFromClass([instance_ class])];
+//  NSString *stringTag = [NSString stringWithFormat: @"HostObjectClassInstance"];
+//
+//  // If you implement this, it'll be used in preference over .toString().
+//  if(name == "Symbol.toStringTag"){
+//     return jsi::String::createFromUtf8(runtime, stringTag.UTF8String);
+//  }
+//
+//  if(name == "Symbol.toPrimitive"){
+//    return jsi::Function::createFromHostFunction(
+//      runtime,
+//      jsi::PropNameID::forAscii(runtime, name),
+//      1,
+//      [this, stringTag] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t) -> jsi::Value {
+//        auto hint = arguments[0].asString(runtime).utf8(runtime);
+//        if(hint == "number"){ // Handles: console.log(+hostObjectObjc);
+//          return [instance_ isKindOfClass: [NSNumber class]] ?
+//              convertNSNumberToJSINumber(runtime, (NSNumber *)instance_) :
+//              jsi::Value(-1); // I'd prefer to return NaN here, but can't see how..!
+//        } else if(hint == "string"){
+//          if([instance_ isKindOfClass: [NSString class]]){
+//            return convertNSStringToJSIString(runtime, (NSString *)instance_);
+//          }
+//        }
+//        return jsi::String::createFromUtf8(runtime, [NSString stringWithFormat: @"[object %@]", stringTag].UTF8String);
+//      }
+//    );
+//  }
 
   if (name == "toJS") {
     auto toJS = [this] (jsi::Runtime& runtime, const jsi::Value& thisValue, const jsi::Value* arguments, size_t count) -> jsi::Value {
