@@ -203,7 +203,7 @@ PODS:
     - React-jsi (= 0.64.2)
     - React-perflogger (= 0.64.2)
   - React-jsinspector (0.64.2)
-  - react-native-objc-runtime (0.1.0):
+  - react-native-objc-runtime (0.2.0):
     - React
     - React-callinvoker
     - React-Core
@@ -374,7 +374,7 @@ SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   FBLazyVector: e686045572151edef46010a6f819ade377dfeb4b
-  FBReactNativeSpec: c3e85455307de6fbe90af41a03d785a1ecc153e5
+  FBReactNativeSpec: 79c8f2e24c41de3fc8ede5fca3d216e7a33a2aa4
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
   RCT-Folly: ec7a233ccc97cc556cf7237f0db1ff65b986f27c
   RCTRequired: 6d3e854f0e7260a648badd0d44fc364bc9da9728
@@ -387,7 +387,7 @@ SPEC CHECKSUMS:
   React-jsi: 67747b9722f6dab2ffe15b011bcf6b3f2c3f1427
   React-jsiexecutor: 80c46bd381fd06e418e0d4f53672dc1d1945c4c3
   React-jsinspector: cc614ec18a9ca96fd275100c16d74d62ee11f0ae
-  react-native-objc-runtime: 2a1e6469ea01828582c1a3fad651315fd10d8320
+  react-native-objc-runtime: fb386d114554d6f39aa4fcbe9c96ccaccbf0a910
   React-perflogger: 25373e382fed75ce768a443822f07098a15ab737
   React-RCTActionSheet: af7796ba49ffe4ca92e7277a5d992d37203f7da5
   React-RCTAnimation: 6a2e76ab50c6f25b428d81b76a5a45351c4d77aa
@@ -404,4 +404,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 80e0e3cd0c93a9cab7eb4478e314caa531ecd713
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.11.3
