@@ -20,6 +20,10 @@ Access the native APIs directly from the React Native JS context!
 
 For now, we support just Objective-C (for iOS/macOS/tvOS devices, but I'll refer to iOS for brevity). Adding support for Java (for Android devices) is on my wishlist for the future.
 
+> [!NOTE]
+> 
+> I explained how this all works in my React Native EU 2022 talk, [How to access all the Objective-C APIs using JSI](https://www.youtube.com/watch?v=foEacW-Ze3w). I actually tried refactoring the code here to make the talk easier to deliver, and you can see my attempted tidy-up in the repo named [rnobjc](https://github.com/shirakaba/rnobjc). I can't say whether the tidy-up truly improved things, but feel free to check it out as another way of writing the same thing – it's the same fundamental approach though, to be clear.
+
 ## Installation
 
 Please get in contact if these instructions don't work for you!
